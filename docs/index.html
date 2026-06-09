@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vallains - ماسح الأمان</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #050505;
+      --bg-secondary: #0a0a0a;
+      --bg-tertiary: #111111;
+      --gold: #D4AF37;
+      --gold-dark: #b8941f;
+      --text-primary: #f5f5f7;
+      --text-secondary: #a1a1a1;
+      --border: #222222;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f97316;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    
+    /* Navbar */
+    .navbar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gold);
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .btn-login {
+      background: var(--gold);
+      color: var(--bg-primary);
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .btn-login:hover { background: var(--gold-dark); }
+    
+    /* Hero */
+    .hero {
+      padding: 6rem 0;
+      text-align: center;
+      background: radial-gradient(ellipse at top, rgba(212,175,55,0.1) 0%, transparent 50%);
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--gold), #fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      line-height: 1.8;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg-primary);
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--gold);
+      padding: 1rem 2.5rem;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: 2px solid var(--gold);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-secondary:hover { background: var(--gold); color: var(--bg-primary); }
+    
+    /* Scan Section */
+    .scan-section {
+      padding: 4rem 0;
+    }
+    .scan-box {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem;
+      text-align: center;
+    }
+    .scan-box h2 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--gold); }
+    .scan-box p { color: var(--text-secondary); margin-bottom: 2rem; }
+    .scan-input-wrapper {
+      display: flex;
+      gap: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .scan-input {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.3s;
+    }
+    .scan-input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+    .scan-input::placeholder { color: var(--text-secondary); }
+    .btn-scan {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--bg-primary);
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s;
+    }
+    .btn-scan:hover { transform: scale(1.05); }
+    
+    /* Features */
+    .features { padding: 4rem 0; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-5px);
+    }
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .feature-card h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }
+    .feature-card p { color: var(--text-secondary); line-height: 1.7; }
+    
+    /* Results */
+    .results-section { padding: 4rem 0; }
+    .results-box {
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .grade-badge {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: white;
+    }
+    .grade-a { background: linear-gradient(135deg, #10b981, #059669); }
+    .grade-b { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .grade-c { background: linear-gradient(135deg, #eab308, #ca8a04); }
+    .grade-d { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .grade-f { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .result-stats {
+      display: flex;
+      gap: 1rem;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 1rem 1.5rem;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+    }
+    .stat-item .value { font-size: 1.5rem; font-weight: 700; }
+    .stat-item .label { font-size: 0.85rem; color: var(--text-secondary); }
+    .stat-critical .value { color: var(--danger); }
+    .stat-high .value { color: var(--warning); }
+    .stat-medium .value { color: #eab308; }
+    .stat-info .value { color: var(--text-secondary); }
+    
+    .vuln-list { margin-top: 2rem; }
+    .vuln-item {
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border-right: 4px solid;
+    }
+    .vuln-critical { border-color: var(--danger); }
+    .vuln-high { border-color: var(--warning); }
+    .vuln-medium { border-color: #eab308; }
+    .vuln-low { border-color: #3b82f6; }
+    .vuln-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .vuln-name { font-weight: 600; font-size: 1.1rem; }
+    .vuln-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .vuln-badge.critical { background: var(--danger); color: white; }
+    .vuln-badge.high { background: var(--warning); color: white; }
+    .vuln-badge.medium { background: #eab308; color: black; }
+    .vuln-badge.low { background: #3b82f6; color: white; }
+    .vuln-desc { color: var(--text-secondary); font-size: 0.95rem; }
+    
+    /* Scan Progress */
+    .scan-progress {
+      background: var(--bg-secondary);
+      border: 2px solid var(--gold);
+      border-radius: 20px;
+      padding: 3rem;
+      text-align: center;
+    }
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      position: relative;
+    }
+    .progress-line {
+      position: absolute;
+      top: 30px;
+      left: 50px;
+      right: 50px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+      border-radius: 2px;
+      width: 75%;
+    }
+    .step {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    .step-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--bg-tertiary);
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.75rem;
+      font-size: 1.5rem;
+    }
+    .step.completed .step-icon { background: var(--success); border-color: var(--success); }
+    .step.active .step-icon { background: var(--gold); border-color: var(--gold); animation: pulse 2s infinite; }
+    .step-label { font-size: 0.85rem; color: var(--text-secondary); }
+    .step.completed .step-label, .step.active .step-label { color: var(--text-primary); }
+    
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.4); }
+      50% { box-shadow: 0 0 0 15px rgba(212,175,55,0); }
+    }
+    
+    .progress-percent {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+    
+    /* Demo Notice */
+    .demo-notice {
+      background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.05));
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .demo-notice h3 { color: var(--gold); margin-bottom: 0.5rem; }
+    .demo-notice p { color: var(--text-secondary); font-size: 0.95rem; }
+    
+    /* Footer */
+    .footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 3rem 0;
+      margin-top: 4rem;
+      text-align: center;
+    }
+    .footer p { color: var(--text-secondary); }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+    .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.3s; }
+    .footer-links a:hover { color: var(--gold); }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.5rem; }
+      .nav-links { display: none; }
+      .scan-input-wrapper { flex-direction: column; }
+      .result-header { flex-direction: column; }
+      .result-stats { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container nav-content">
+      <a href="#" class="logo">
+        <div class="logo-icon">🔒</div>
+        Vallains
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">المميزات</a></li>
+        <li><a href="#scanner">الفاحص</a></li>
+        <li><a href="#results">النتائج</a></li>
+      </ul>
+      <a href="#" class="btn-login">تسجيل الدخول</a>
+    </div>
+  </nav>
+  
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>🔒 ماسح الأمان المتقدم</h1>
+      <p>اكتشف الثغرات الأمنية في موقعك قبل الهجمات. فحص شامل يشمل SQL Injection، XSS، CSRF، وغيرها من الثغرات المعروفة.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="startDemoScan()">🚀 ابدأ الفحص المجاني</button>
+        <button class="btn-secondary" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">📖了解更多</button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Scanner -->
+  <section class="scan-section" id="scanner">
+    <div class="container">
+      <div class="scan-box">
+        <h2>🛡️ فحص أمان شامل</h2>
+        <p>أدخل رابط الموقع لفحصه واكتشاف الثغرات الأمنية</p>
+        
+        <div class="scan-input-wrapper">
+          <input type="text" class="scan-input" id="targetUrl" placeholder="example.com" value="google.com">
+          <button class="btn-scan" onclick="startScan()">
+            <span>🔍</span>
+            <span>فحص</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Results -->
+  <section class="results-section" id="results">
+    <div class="container">
+      <div class="demo-notice">
+        <h3>⚠️ عرض توضيحي (Demo Mode)</h3>
+        <p>هذا العرض يوضح شكل النتائج. للنشر الفعلي، deploy الـ backend على Railway أو Render.</p>
+      </div>
+      
+      <div class="results-box">
+        <div class="result-header">
+          <div>
+            <div class="grade-badge grade-b">B</div>
+          </div>
+          <div class="result-stats">
+            <div class="stat-item stat-critical">
+              <div class="value">0</div>
+              <div class="label">حرج</div>
+            </div>
+            <div class="stat-item stat-high">
+              <div class="value">2</div>
+              <div class="label">عالي</div>
+            </div>
+            <div class="stat-item stat-medium">
+              <div class="value">3</div>
+              <div class="label">متوسط</div>
+            </div>
+            <div class="stat-item stat-info">
+              <div class="value">5</div>
+              <div class="label">معلومات</div>
+            </div>
+          </div>
+        </div>
+        
+        <h3 style="margin-bottom: 1rem;">⚠️ الثغرات المكتشفة</h3>
+        <div class="vuln-list">
+          <div class="vuln-item vuln-high">
+            <div class="vuln-header">
+              <span class="vuln-name">🔓 SQL Injection</span>
+              <span class="vuln-badge high">عالي</span>
+            </div>
+            <p class="vuln-desc">تم اكتشاف نقطة إدخال محتملة لحقن SQL في parameter 'id'. يُنصح باستخدام prepared statements.</p>
+          </div>
+          <div class="vuln-item vuln-medium">
+            <div class="vuln-header">
+              <span class="vuln-name">⚠️ Missing CSP Header</span>
+              <span class="vuln-badge medium">متوسط</span>
+            </div>
+            <p class="vuln-desc">Content-Security-Policy header غير موجود. يُنصح إضافته لمنع XSS attacks.</p>
+          </div>
+          <div class="vuln-item vuln-low">
+            <div class="vuln-header">
+              <span class="vuln-name">🔶 Open Redirect</span>
+              <span class="vuln-badge low">منخفض</span>
+            </div>
+            <p class="vuln-desc">تم اكتشاف مسار إعادة توجيه. تأكد من التحقق من المدخلات.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Scan Progress (Hidden by default) -->
+  <section class="scan-section" id="scanProgress" style="display: none;">
+    <div class="container">
+      <div class="scan-progress">
+        <h2>🔄 جاري الفحص...</h2>
+        <div class="progress-percent" id="progressPercent">0%</div>
+        
+        <div class="progress-steps">
+          <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
+          
+          <div class="step" id="step-dns">
+            <div class="step-icon">🌐</div>
+            <div class="step-label">DNS</div>
+          </div>
+          <div class="step" id="step-ssl">
+            <div class="step-icon">🔐</div>
+            <div class="step-label">SSL</div>
+          </div>
+          <div class="step" id="step-ports">
+            <div class="step-icon">🚪</div>
+            <div class="step-label">Ports</div>
+          </div>
+          <div class="step" id="step-sqli">
+            <div class="step-icon">💉</div>
+            <div class="step-label">SQLi</div>
+          </div>
+          <div class="step" id="step-xss">
+            <div class="step-icon">⚡</div>
+            <div class="step-label">XSS</div>
+          </div>
+          <div class="step" id="step-cors">
+            <div class="step-icon">🔄</div>
+            <div class="step-label">CORS</div>
+          </div>
+        </div>
+        
+        <p style="color: var(--text-secondary); margin-top: 1rem;" id="currentStep">جاري فحص DNS...</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem;">🛡️ مميزات Vallains</h2>
+      <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem;">فحص شامل ومتكامل لجميع أنواع الثغرات الأمنية</p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">💉</div>
+          <h3>SQL Injection</h3>
+          <p>اكتشاف ثغرات حقن SQL التي تسمح للمهاجمين بالتلاعب بقواعد البيانات.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Cross-Site Scripting</h3>
+          <p>فحص ثغرات XSS التي تسمح بحقن أكواد خبيثة في صفحات الموقع.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Open Redirect</h3>
+          <p>اكتشاف ثغرات إعادة التوجيه المفتوحة التي قد تُستخدم في التصيد.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <h3>SSRF</h3>
+          <p>فحص Server-Side Request Forgery التي تسمح بالوصول لموارد داخلية.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📁</div>
+          <h3>Directory Traversal</h3>
+          <p>اكتشاف ثغرات التنقل في الملفات التي تسمح بالوصول لملفات حساسة.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💻</div>
+          <h3>Command Injection</h3>
+          <p>فحص ثغرات حقن الأوامر التي تسمح بتنفيذ أوامر على الخادم.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h3>CORS Misconfiguration</h3>
+          <p>فحص إعدادات CORS الخاطئة التي قد تسمح بالوصول غير المصرح.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📄</div>
+          <h3>XXE</h3>
+          <p>اكتشاف XML External Entity vulnerabilities.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2024 Vallains Security Scanner. جميع الحقوق محفوظة.</p>
+      <div class="footer-links">
+        <a href="#">الخصوصية</a>
+        <a href="#">الشروط</a>
+        <a href="#">تواصل معنا</a>
+      </div>
+    </div>
+  </footer>
+  
+  <script>
+    const steps = [
+      { id: 'dns', label: 'DNS', progress: 15 },
+      { id: 'ssl', label: 'SSL', progress: 30 },
+      { id: 'ports', label: 'Ports', progress: 45 },
+      { id: 'sqli', label: 'SQLi', progress: 60 },
+      { id: 'xss', label: 'XSS', progress: 75 },
+      { id: 'cors', label: 'CORS', progress: 90 }
+    ];
+    
+    let currentStep = 0;
+    
+    function startDemoScan() {
+      document.getElementById('scanProgress').style.display = 'block';
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('scanner').scrollIntoView({ behavior: 'smooth' });
+      simulateScan();
+    }
+    
+    function startScan() {
+      const url = document.getElementById('targetUrl').value;
+      if (!url) {
+        alert('الرجاء إدخال رابط الموقع');
+        return;
+      }
+      startDemoScan();
+    }
+    
+    function simulateScan() {
+      currentStep = 0;
+      
+      const interval = setInterval(() => {
+        if (currentStep >= steps.length) {
+          clearInterval(interval);
+          document.getElementById('scanProgress').style.display = 'none';
+          document.getElementById('results').style.display = 'block';
+          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+        
+        const step = steps[currentStep];
+        document.getElementById('progressPercent').textContent = step.progress + '%';
+        document.getElementById('progressFill').style.width = step.progress + '%';
+        document.getElementById('currentStep').textContent = 'جاري فحص ' + step.label + '...';
+        
+        // Update step classes
+        document.querySelectorAll('.step').forEach((el, idx) => {
+          el.classList.remove('active', 'completed');
+          if (idx < currentStep) el.classList.add('completed');
+          if (idx === currentStep) el.classList.add('active');
+        });
+        
+        currentStep++;
+      }, 800);
+    }
+    
+    // Auto-run demo on page load
+    window.addEventListener('load', () => {
+      setTimeout(startDemoScan, 1500);
+    });
+  </script>
+</body>
+</html>
