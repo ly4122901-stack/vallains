@@ -1,0 +1,770 @@
+version: 1
+plan:
+  name: "Vallains - بناء ماسح أمني full-stack"
+  max_concurrency: 5
+  max_cycles: 10
+  auto_reject_retries: 1
+
+tasks:
+  # ===== BACKEND CORE =====
+  - id: backend-project
+    title: "⚙️ إعداد المشروع - Backend"
+    prompt: |
+      أنشئ هيكل المشروع الكامل في /workspace/vallains/backend/
+
+      الملفات المطلوبة:
+      /workspace/vallains/backend/package.json
+      /workspace/vallains/backend/.env.example
+      /workspace/vallains/backend/server.js
+      /workspace/vallains/backend/config/passport.js
+      /workspace/vallains/backend/config/database.js
+      /workspace/vallains/backend/routes/auth.js
+      /workspace/vallains/backend/routes/api.js
+      /workspace/vallains/backend/middleware/auth.js
+      /workspace/vallains/backend/services/scan-engine.js
+      /workspace/vallains/backend/services/dns-resolver.js
+      /workspace/vallains/backend/services/geoip.js
+      /workspace/vallains/backend/services/ssl-checker.js
+      /workspace/vallains/backend/services/port-scanner.js
+      /workspace/vallains/backend/services/subdomain-finder.js
+      /workspace/vallains/backend/services/blacklist-checker.js
+
+      package.json يجب أن يتضمن:
+      - express, cors, helmet, express-session
+      - passport, passport-google-oauth20, passport-github2, passport-facebook
+      - axios, jsonwebtoken, bcryptjs, uuid
+      - socket.io (لـ real-time progress)
+      - dns-socket
+
+      server.js:
+      - Enable CORS للـ frontend origin من env
+      - Helmet security headers
+      - express-session مع secret
+      - Mount auth routes على /auth
+      - Mount API routes على /api
+      - Serve static من /public (frontend production build)
+      - SPA fallback: serve index.html لأي route غير API
+      - Error handling middleware
+      - Listen على PORT
+
+      .env.example:
+      PORT=3000
+      SESSION_SECRET=change_this_to_random_string
+      FRONTEND_URL=http://localhost:5173
+      GOOGLE_CLIENT_ID=
+      GOOGLE_CLIENT_SECRET=
+      GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+      GITHUB_CLIENT_ID=
+      GITHUB_CLIENT_SECRET=
+      GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+      FACEBOOK_APP_ID=
+      FACEBOOK_APP_SECRET=
+      FACEBOOK_CALLBACK_URL=http://localhost:3000/auth/facebook/callback
+      NODE_ENV=development
+
+      database.js:
+      - In-memory store أو JSON file persistence
+      - User schema: { id, provider, providerId, email, name, avatar, createdAt }
+      - Methods: findUser, createUser, updateUser, findByEmail
+
+      middleware/auth.js:
+      - requireAuth: checks session, returns 401 if not logged in
+      - optionalAuth: continues even if not logged in
+
+    assigned_to: developer
+    verified_by: tester
+    verify_prompt: |
+      Check that all backend files exist and have content.
+      ls /workspace/vallains/backend/ -- should show package.json, server.js, etc.
+      cat /workspace/vallains/backend/package.json | python3 -c "import json,sys; d=json.load(sys.stdin); print('deps:', len(d.get('dependencies',{})))"
+      Should be at least 12 dependencies.
+      Check server.js has CORS, helmet, session, routes.
+
+  - id: passport-auth
+    title: "🔐 نظام OAuth - Google, GitHub, Facebook"
+    prompt: |
+      Implement OAuth authentication in /workspace/vallains/backend/
+
+      config/passport.js:
+      - GoogleStrategy: scope ['email', 'profile'], callback URL from env
+      - GitHubStrategy: scope ['user:email'], handle emails from accounts
+      - FacebookStrategy: scope ['email'], handle missing email
+      - serializeUser/deserializeUser: store user ID in session
+      - Handle case where email is null (use providerId@provider.com)
+
+      routes/auth.js:
+      GET /auth/google → passport.authenticate('google', { scope: ['email', 'profile'] })
+      GET /auth/google/callback → handle callback, redirect to frontend with token
+      GET /auth/github → passport.authenticate('github', { scope: ['user:email'] })
+      GET /auth/github/callback → handle callback
+      GET /auth/facebook → passport.authenticate('facebook', { scope: ['email'] })
+      GET /auth/facebook/callback → handle callback
+      POST /auth/login → local email/password login with bcrypt
+      POST /auth/register → create local account
+      GET /auth/logout → destroy session
+      GET /auth/session → return current user info (or 401)
+      GET /auth/accounts → return list of user's connected OAuth accounts
+
+      After successful OAuth:
+      - Create JWT token (sign with SESSION_SECRET)
+      - Return token to frontend (as query param redirect or JSON)
+      - Store token in localStorage on frontend
+
+      Local auth fallback:
+      - bcrypt hash passwords
+      - JWT token generation on login
+      - Token validation middleware
+
+      Error handling:
+      - If OAuth fails, return JSON { error: true, message: '...' }
+      - Don't redirect to error pages, return JSON always
+
+    assigned_to: developer
+    verified_by: tester
+    verify_prompt: |
+      Check that:
+      1. passport.js has all 3 strategies (Google, GitHub, Facebook)
+      2. auth.js has all endpoints (google, github, facebook, login, register, logout, session)
+      3. bcrypt is used for password hashing
+      4. JWT tokens are generated
+      Run: grep "GoogleStrategy\|GitHubStrategy\|FacebookStrategy" /workspace/vallains/backend/config/passport.js
+      Run: grep "bcrypt\|jwt" /workspace/vallains/backend/routes/auth.js
+
+  - id: scan-engine
+    title: "🛡️ محرك الفحص - جميع الثغرات"
+    prompt: |
+      Build the scan engine and all vulnerability scanners in /workspace/vallains/backend/services/
+
+      scan-engine.js - Main orchestrator:
+      - scan(target, type, userId) function
+      - Types: comprehensive, sql-injection, xss, open-redirect, ssrf, directory-traversal, cmdi, cors-misconfig, xxe, info, resolve, reverse, blacklist, ssl, ports, subdomains, redirects, reputation
+      - comprehensive: runs ALL vulnerability scans sequentially
+      - Returns: { success: true, target, type, timestamp, duration, results: {...}, summary: {...} }
+      - Timeout per scan: 30 seconds
+      - Error handling: try/catch, return error object on failure
+
+      scanners/sql-injection.js:
+      - Test URL: try adding ' to params like ?id=1', ?q=', ?search=' etc.
+      - Payloads: ', ' OR '1'='1, ' OR '1'='1' --, admin'--
+      - Check for: SQL errors in response (mysql, postgresql, oracle, sqlite errors)
+      - Check for: content length differential
+      - Also test headers: X-Forwarded-For, User-Agent with SQL payloads
+      - Return: { vulnerable, payload, type: 'union/error/boolean', confidence: 'high/medium/low', parameter, location }
+
+      scanners/xss.js:
+      - Test params: <script>alert(1)</script>, <img src=x onerror=alert(1)>, <svg onload=alert(1)>
+      - Check if payload is reflected unencoded
+      - Test: reflected, stored (if form input), DOM-based
+      - Return: { vulnerable, payload, type, location, confidence }
+
+      scanners/open-redirect.js:
+      - Test params: ?redirect=, ?url=, ?next=, ?dest=, ?checkout=, ?return=
+      - Payloads: https://google.com, //google.com, ///google.com, javascript:alert(1)
+      - Check if 3xx redirect to external domain without validation
+      - Return: { vulnerable, payload, redirectTo, confidence }
+
+      scanners/ssrf.js:
+      - Test against internal targets:
+        - http://169.254.169.254/latest/meta-data/ (AWS metadata)
+        - http://localhost/, http://127.0.0.1/, http://[::1]/
+        - http://0.0.0.0/
+      - Check if server fetches internal resources
+      - Return: { vulnerable, payload, internalResourceFound, confidence }
+
+      scanners/directory-traversal.js:
+      - Test: ?file=../../etc/passwd, ?path=../../../etc/passwd, ?page=..%2F..%2Fetc%2Fpasswd
+      - Check for: root:x, /bin/bash, [boot loader] in response
+      - Return: { vulnerable, payload, fileFound, confidence }
+
+      scanners/cmdi.js:
+      - Test: ?cmd=|ls, ?q=$(whoami), ?search=`id`, ?host=|cat /etc/hosts
+      - Check for command output in response
+      - Return: { vulnerable, payload, commandOutput, confidence }
+
+      scanners/cors-misconfig.js:
+      - Make requests with Origin header
+      - Check Access-Control-Allow-Origin response header
+      - Detect: wildcard *, credentials + any origin, null origin
+      - Return: { vulnerable, misconfigType, allowedOrigin, confidence }
+
+      scanners/xxe.js:
+      - Send XXE payloads in XML body
+      - Test: <?xml version="1.0"?><!DOCTYPE foo [<ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>
+      - Check for file disclosure or XXE errors
+      - Return: { vulnerable, payload, infoLeaked, confidence }
+
+      All scanners:
+      - async functions
+      - Accept { url, params, method } object
+      - Return structured JSON
+      - Handle timeouts (use AbortController, 10s timeout)
+      - Do NOT cause real harm (safe, read-only)
+
+      dns-resolver.js:
+      - resolveDomain(domain): returns { ipv4: [...], ipv6: [...], mx: [...], ns: [...], txt: [...], cname: [...] }
+      - Uses Node.js dns module + fallback to axios for DNS-over-HTTPS (dns.google)
+
+      geoip.js:
+      - getGeoIP(ip): returns { country, city, region, isp, org, asn, lat, lon, timezone, hosting }
+
+      ssl-checker.js:
+      - checkSSL(domain): returns { issuer, subject, validFrom, validTo, daysLeft, sans: [], grade }
+      - Uses tls.connect or axios to fetch certificate info
+
+      port-scanner.js:
+      - scanPorts(ip): scans common ports [21,22,23,25,53,80,110,143,443,465,587,993,995,1433,1521,3306,3389,5432,5900,6379,8080,8443,27017]
+      - Returns: [{ port, service, status: 'open'|'closed' }]
+      - Use net.connect with 2s timeout
+
+      subdomain-finder.js:
+      - findSubdomains(domain): uses crt.sh API (certificate transparency)
+      - Returns: [{ subdomain, issuer, created }]
+      - Also try DNS zone transfer if available
+
+      blacklist-checker.js:
+      - checkBlacklist(ip): check against DNSBL zones
+      - Zones: zen.spamhaus.org, bl.spamcop.net, dnsbl.sorbs.net, uceprotect1.dnsbl.net.au
+      - Returns: [{ zone, listed: true/false }]
+
+    assigned_to: developer
+    verified_by: tester
+    verify_prompt: |
+      Check that scanner files exist:
+      ls /workspace/vallains/backend/services/scanners/
+      Confirm: sql-injection.js, xss.js, open-redirect.js, ssrf.js, directory-traversal.js, cmdi.js, cors-misconfig.js, xxe.js
+      Check scan-engine.js exports scan() function with 'comprehensive' type.
+      Run: grep "async function\|export" /workspace/vallains/backend/services/scan-engine.js
+      Run: grep "comprehensive" /workspace/vallains/backend/services/scan-engine.js
+
+  - id: api-routes
+    title: "🌐 API Routes - كل فحوصات الـ API"
+    prompt: |
+      Implement /workspace/vallains/backend/routes/api.js
+
+      All routes require requireAuth middleware.
+
+      GET /api/health
+      Response: { status: 'ok', timestamp, uptime }
+
+      GET /api/scan?target=example.com&type=sql-injection
+      POST /api/scan (body: { target, type })
+      - Validate target: must be valid domain or IP (use regex)
+      - Validate type: must be in allowed list
+      - Rate limit: track scans per user, max 10/minute
+      - Call scanEngine.scan(target, type, userId)
+      - Store scan result in history
+      - Return results
+      Response: { success, target, type, timestamp, duration, results: {...}, summary: { critical, high, medium, info, grade } }
+
+      GET /api/scan/:id
+      - Get scan result by ID
+      - Only return if owned by current user
+
+      GET /api/scan-history?limit=20&offset=0
+      - Return recent scans for current user
+      - Paginated
+
+      GET /api/accounts
+      - Return user's connected OAuth accounts
+
+      POST /api/logout-all
+      - Destroy all sessions for user
+
+      Error responses:
+      { error: true, code: 'INVALID_TARGET', message: '...' }
+      { error: true, code: 'RATE_LIMITED', message: '...' }
+      { error: true, code: 'UNAUTHORIZED', message: '...' }
+      { error: true, code: 'SCAN_FAILED', message: '...' }
+
+      Add at bottom:
+      app.use((err, req, res, next) => {
+        console.error(err.stack);
+        res.status(500).json({ error: true, code: 'INTERNAL_ERROR', message: 'خطأ داخلي' });
+      });
+
+    assigned_to: developer
+    verified_by: tester
+    verify_prompt: |
+      Check api.js has all endpoints:
+      - GET /api/health
+      - GET/POST /api/scan
+      - GET /api/scan/:id
+      - GET /api/scan-history
+      - GET /api/accounts
+      Run: grep "router\." /workspace/vallains/backend/routes/api.js | wc -l
+      Should be at least 7 route definitions.
+      Check requireAuth is used on protected routes.
+
+  # ===== FRONTEND =====
+  - id: frontend-setup
+    title: "⚛️ إعداد React Frontend"
+    prompt: |
+      Create /workspace/vallains/frontend/ using Vite + React
+
+      /workspace/vallains/frontend/
+      ├── package.json
+      ├── vite.config.js
+      ├── index.html
+      ├── public/
+      └── src/
+          ├── main.jsx
+          ├── App.jsx
+          ├── api/
+          │   └── client.js
+          ├── context/
+          │   └── AuthContext.jsx
+          ├── pages/
+          │   ├── LoginPage.jsx
+          │   ├── Dashboard.jsx
+          │   └── ResultsPage.jsx
+          ├── components/
+          │   ├── GoogleAccountPicker.jsx
+          │   ├── ScanCard.jsx
+          │   ├── ResultsViewer.jsx
+          │   ├── NavBar.jsx
+          │   ├── Loader.jsx
+          │   └── ComprehensiveScanModal.jsx
+          └── styles/
+              └── main.css
+
+      package.json:
+      - react, react-dom, react-router-dom v6
+      - vite, @vitejs/plugin-react
+      - axios
+      - react-hot-toast
+      - lucide-react (for icons)
+
+      vite.config.js:
+      - Plugin: @vitejs/plugin-react
+      - Server: proxy /api → http://localhost:3000, /auth → http://localhost:3000
+      - For production: define VITE_API_URL env
+
+      index.html:
+      - RTL, lang="ar"
+      - Google Fonts: Cairo, Cinzel, JetBrains Mono
+      - Title: "Vallains - ماسح أمني احترافي"
+
+      App.jsx:
+      - BrowserRouter
+      - Routes: / → LoginPage, /dashboard → Dashboard (protected), /results/:id → ResultsPage (protected)
+      - AuthContext.Provider wrapping Router
+      - Toaster for notifications
+      - On mount: check localStorage for token, fetch /auth/session to validate
+
+      AuthContext.jsx:
+      - State: user, isLoggedIn, loading
+      - loginWithGoogle(): window.location.href = BACKEND_URL/auth/google
+      - loginWithGitHub(): window.location.href = BACKEND_URL/auth/github
+      - loginWithFacebook(): window.location.href = BACKEND_URL/auth/facebook
+      - loginLocal(email, password): POST /auth/login, store token
+      - register(name, email, password): POST /auth/register
+      - logout(): clear token, redirect to /
+      - fetchSession(): GET /auth/session to restore session from token
+      - Token stored in localStorage as 'vallains_token'
+      - Handle OAuth callback: detect ?token= in URL, store it, redirect to dashboard
+
+      api/client.js:
+      - baseURL from VITE_API_URL or localhost:3000
+      - Axios instance with Authorization: Bearer {token}
+      - Handle 401: clear token, redirect to /
+      - Methods: login, register, getSession, scan, getScanHistory, getScanById, getAccounts, logoutAll
+
+      THEME: Keep the existing Vallains dark gold aesthetic
+      - Background: #050505, #0a0a0c, #111114
+      - Gold: #D4AF37, #F5DEB3, #8B6F1F
+      - Text: #f5f5f7, #d4d4d8, #a1a1aa
+      - Font: Cairo (Arabic), Cinzel (English headers), JetBrains Mono (code)
+      - Smooth animations, gold glows, luxury feel
+
+    assigned_to: frontend-dev
+    verified_by: tester
+    verify_prompt: |
+      Check:
+      1. /workspace/vallains/frontend/package.json has react, react-router-dom, axios, vite
+      2. /workspace/vallains/frontend/vite.config.js has proxy to localhost:3000
+      3. /workspace/vallains/frontend/src/App.jsx has BrowserRouter
+      4. /workspace/vallains/frontend/src/context/AuthContext.jsx exists with all login methods
+      5. Theme colors match Vallains (#050505 bg, #D4AF37 gold)
+
+  - id: login-page
+    title: "🔑 صفحة تسجيل الدخول مع OAuth"
+    prompt: |
+      Build /workspace/vallains/frontend/src/pages/LoginPage.jsx
+
+      Design - Full page, centered card, dark luxury:
+      - Background: radial gradient with gold glow orbs
+      - Centered card: #111114 background, #D4AF37 border, gold glow shadow
+      - Logo: "V" in gold circle + "VALLAINS" text
+      - Title: "مرحباً بك في Vallains" in Arabic
+      - Subtitle: "سجّل الدخول للمتابعة"
+
+      Social Login Buttons (3 buttons):
+      - Google: Red #EA4335 background, white text, Google icon, "الدخول بجوجل"
+      - GitHub: Dark #24292e background, white text, GitHub icon, "الدخول بجيت هاب"
+      - Facebook: Blue #1877F2 background, white text, Facebook icon, "الدخول بفيسبوك"
+      - Each button: onClick → redirect to backend OAuth endpoint
+      - Beautiful hover effects with scale and glow
+
+      Google Account Picker:
+      - Shown after OAuth callback if multiple Google accounts detected
+      - Modal overlay with backdrop blur
+      - List of accounts with avatar + email + name
+      - "اختر الحساب" header
+      - Select button per account
+      - Call API to confirm account selection
+
+      Divider: "— أو —" in the middle
+
+      Local Login Form:
+      - Email input (with icon)
+      - Password input (with toggle visibility)
+      - "نسيت كلمة المرور؟" link
+      - "تسجيل الدخول" button (gold gradient)
+      - Error message display
+
+      Registration Toggle:
+      - "ليس لديك حساب؟ إنشاء حساب جديد"
+      - Toggle to registration form:
+        - Name input
+        - Email input
+        - Password input
+        - Confirm password input
+        - "إنشاء الحساب" button
+
+      Loading states for each auth method.
+      Error messages from backend displayed.
+      Redirect to /dashboard on success.
+
+      Handle OAuth callback:
+      - Check URL for ?token= and ?error=
+      - If token: store in localStorage, redirect to /dashboard
+      - If error: show error message on login page
+
+    assigned_to: frontend-dev
+    verified_by: tester
+    verify_prompt: |
+      Check LoginPage.jsx has:
+      1. Google login button
+      2. GitHub login button  
+      3. Facebook login button
+      4. Local email/password form
+      5. Registration form
+      6. Google account picker component
+      7. Error handling
+      8. Loading states
+      Run: grep -c "Google\|GitHub\|Facebook" /workspace/vallains/frontend/src/pages/LoginPage.jsx
+
+  - id: dashboard-page
+    title: "📊 لوحة الفحص الرئيسية"
+    prompt: |
+      Build /workspace/vallains/frontend/src/pages/Dashboard.jsx
+
+      Layout:
+      - Top NavBar: logo, user avatar, name, logout button
+      - Main content with tabs on the left
+
+      Left Tabs - Scan Categories:
+      ═══ الفحص الشامل ═══ (SPECIAL SECTION)
+      🔴 [فحص شامل شامل] - BIG GOLD BUTTON with pulse animation
+        - Subtitle: "جميع الثغرات + جمع المعلومات + فحص الأمن"
+        - On click: opens ComprehensiveScanModal
+
+      ═══ ثغرات أمنية ═══
+      - 🔴 SQL Injection
+      - 🔴 XSS (Cross-Site Scripting)
+      - 🟠 Open Redirect
+      - 🟠 SSRF
+      - 🟠 Directory Traversal
+      - 🟠 Command Injection
+      - 🟡 CORS Misconfiguration
+      - 🟡 XXE
+
+      ═══ جمع المعلومات ═══
+      - 🔵 WHOIS / DNS
+      - 🔵 كشف IP
+      - 🔵 عكس DNS
+      - 🔵 SSL Certificate
+      - 🔵 المنافذ المفتوحة
+      - 🔵 النطاقات الفرعية
+      - 🔵 التحويلات
+      - 🔵 سمعة IP
+
+      Main Input Area:
+      - Large URL input (full width, dark bg, gold border on focus)
+      - Placeholder: "أدخل رابط الموقع للفحص..."
+      - "فحص" button (gold gradient)
+      - "فحص شامل" button (bigger, highlighted)
+
+      ComprehensiveScanModal:
+      - Modal showing all checks that will run
+      - Animated checkmarks as each scan completes
+      - Real-time progress: "جاري فحص SQL Injection..." → ✅ Done
+      - List: SQLi, XSS, Open Redirect, SSRF, Directory Traversal, CMDi, CORS, XXE, DNS, GeoIP, SSL, Ports, Subdomains
+      - Total progress bar
+      - Cancel button
+      - On complete: show summary with severity breakdown
+
+      Scan Results Area:
+      - Appears below input after scan
+      - Color-coded cards: 🔴 Critical, 🟠 High, 🟡 Medium, 🔵 Info
+      - Each card: name, severity badge, description, payload used, confidence, fix recommendation
+      - Export button (JSON download)
+      - "فحص جديد" button
+
+      Sidebar - Scan History:
+      - Recent scans list
+      - Target + timestamp + severity badge
+      - Click to reload results
+
+      Use the dark gold Vallains theme throughout.
+      Smooth animations, proper RTL layout.
+
+    assigned_to: frontend-dev
+    verified_by: tester
+    verify_prompt: |
+      Check Dashboard.jsx:
+      1. Has comprehensive scan button (big, gold, highlighted)
+      2. All vulnerability scans listed (SQL, XSS, Open Redirect, SSRF, etc.)
+      3. Info gathering scans (WHOIS, DNS, GeoIP)
+      4. Security scans (SSL, ports, subdomains)
+      5. Real-time progress for comprehensive scan
+      6. Results display with severity colors
+      Run: grep "comprehensive\|sql-injection\|xss\|open-redirect\|ssrf\|directory\|cmdi\|cors\|xxe" /workspace/vallains/frontend/src/pages/Dashboard.jsx | wc -l
+
+  - id: results-viewer
+    title: "📋 ResultsViewer - عرض النتائج بتفاصيل"
+    prompt: |
+      Build /workspace/vallains/frontend/src/components/ResultsViewer.jsx
+
+      Full results display component:
+
+      Header:
+      - Target URL
+      - Scan timestamp
+      - Duration
+      - Overall security grade (A/B/C/D/F with colored badge)
+
+      Severity Summary Bar:
+      - Visual bar showing: Critical (red), High (orange), Medium (yellow), Info (blue)
+      - Count for each severity
+      - Overall score / 100
+
+      Vulnerability Cards:
+      For each finding:
+      - Severity badge (Critical/High/Medium/Info) with color
+      - Title (e.g. "SQL Injection Found")
+      - Description
+      - Payload that triggered it (in code block)
+      - Parameter tested
+      - Confidence: High/Medium/Low
+      - Impact description
+      - Remediation steps (how to fix)
+      - Expand/collapse for details
+
+      Sections:
+      - 🔴 Critical Findings
+      - 🟠 High Findings
+      - 🟡 Medium Findings
+      - 🔵 Informational
+      - 🔵 DNS Records
+      - 🔵 SSL Info
+      - 🔵 Open Ports
+      - 🔵 Subdomains
+
+      Export Options:
+      - Download JSON
+      - Download PDF (or HTML report)
+      - Copy to clipboard
+      - Share link
+
+      Navigation:
+      - Previous/Next scan
+      - "تشغيل فحص جديد"
+      - "تشغيل فحص شامل" button
+
+      Error State:
+      - If scan failed: show error message with retry button
+      - If target unreachable: show connection error
+
+      Loading State:
+      - Skeleton cards while loading
+      - Progress indicator
+
+      Dark gold theme. Cards with #111114 bg, gold borders, smooth animations.
+
+    assigned_to: frontend-dev
+    verified_by: tester
+    verify_prompt: |
+      Check ResultsViewer.jsx:
+      1. Severity color coding (Critical=red, High=orange, Medium=yellow, Info=blue)
+      2. Vulnerability cards with all details
+      3. Export buttons (JSON, PDF, clipboard)
+      4. Summary header with security grade
+      5. Expand/collapse for details
+      6. Error and loading states
+
+  # ===== DEPLOYMENT =====
+  - id: github-setup
+    title: "🚀 إعداد GitHub ونشر المشروع"
+    prompt: |
+      Setup GitHub deployment for the full project.
+
+      /workspace/vallains/.github/workflows/
+      ├── backend.yml
+      └── frontend.yml
+
+      backend.yml:
+      name: Deploy Backend
+      on: push to main branch
+      jobs:
+        deploy:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: '18'
+            - name: Install deps
+              run: cd backend && npm ci
+            - name: Run tests
+              run: cd backend && npm test || echo "No tests yet"
+            - name: Deploy to Railway
+              env:
+                RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+              run: |
+                curl -fsSL https://railway.app/install.sh | sh
+                railway login --token $RAILWAY_TOKEN
+                railway up --service vallains-backend
+
+      frontend.yml:
+      name: Deploy Frontend
+      on: push to main branch
+      jobs:
+        build-deploy:
+          runs-on: ubuntu-latest
+          steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                node-version: '18'
+            - name: Install deps
+              run: cd frontend && npm ci
+            - name: Build
+              run: cd frontend && npm run build
+              env:
+                VITE_API_URL: https://vallains-backend.railway.app
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                github_token: ${{ secrets.GITHUB_TOKEN }}
+                publish_dir: frontend/dist
+
+      /workspace/vallains/README.md:
+      - Title: Vallains Security Scanner
+      - Description: ماسح أمني احترافي للموقع
+      - Features in Arabic
+      - Setup instructions (local dev)
+      - OAuth setup guide (Google, GitHub, Facebook)
+      - Deployment instructions
+      - Security notice
+      - Tech stack
+
+      /workspace/vallains/.gitignore:
+      node_modules/
+      dist/
+      .env
+      *.log
+      .DS_Store
+      .env.local
+      backend/data/
+
+      /workspace/vallains/package.json (root):
+      {
+        "name": "vallains",
+        "version": "1.0.0",
+        "scripts": {
+          "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+          "dev:backend": "cd backend && npm run dev",
+          "dev:frontend": "cd frontend && npm run dev",
+          "install:all": "cd backend && npm install && cd ../frontend && npm install",
+          "build": "cd frontend && npm run build"
+        },
+        "devDependencies": {
+          "concurrently": "^8.0.0"
+        }
+      }
+
+      GitHub repo setup using provided token ([REDACTED]):
+      1. Check if gh CLI is available: which gh
+      2. If available: 
+         - gh auth login --with-token [REDACTED]
+         - gh repo create vallains-security-scanner --public --source=. --push
+      3. If gh not available, use curl with GitHub API to create repo
+      4. Push all files to the repo
+
+      After creating repo:
+      - Add GitHub Actions secrets in repo settings (using gh cli or API)
+      - Secrets needed: RAILWAY_TOKEN (for backend deploy)
+      - The GITHUB_TOKEN is auto-provided by GitHub Actions
+
+    assigned_to: developer
+    verified_by: tester
+    verify_prompt: |
+      Check:
+      1. .github/workflows/backend.yml exists
+      2. .github/workflows/frontend.yml exists
+      3. README.md has Arabic setup instructions
+      4. .gitignore exists
+      5. Root package.json exists with dev scripts
+      6. Git repo initialized and remote set to GitHub
+      Run: ls /workspace/vallains/.github/workflows/
+      Run: git -C /workspace/vallains remote get-url origin 2>/dev/null || echo "No git remote set"
+
+  - id: connect-frontend-backend
+    title: "🔗 ربط الـ Frontend بالـ Backend"
+    prompt: |
+      Final integration: make sure frontend and backend work together perfectly.
+
+      1. Verify vite.config.js proxy is correct for /api and /auth
+      2. Verify api/client.js uses the right base URL
+      3. Make AuthContext properly handles:
+         - OAuth callback (?token= in URL)
+         - Session restoration on page load
+         - 401 responses redirect to login
+         - Token refresh if implemented
+
+      4. Create /workspace/vallains/TESTING.md:
+         - Local dev setup (npm run install:all, npm run dev)
+         - OAuth credentials setup for each provider:
+           * Google: console.cloud.google.com → OAuth consent screen → Credentials
+           * GitHub: github.com/settings/developers → OAuth Apps → New
+           * Facebook: developers.facebook.com → Apps → Facebook Login
+         - Environment variables needed
+         - Testing the scanner (test with example.com or a test server)
+         - Common issues and solutions
+         - How to check if scans are working
+
+      5. Make sure the frontend handles:
+         - Loading states during scan
+         - Error states (target unreachable, scan failed)
+         - Empty results
+         - Large results (pagination or virtualized list)
+
+      6. Ensure responsive design:
+         - Mobile-friendly layout
+         - RTL text direction
+         - Arabic text properly displayed
+
+      7. Add error boundaries in React to prevent white screen of death.
+
+    assigned_to: developer
+    verified_by: tester
+    verify_prompt: |
+      Check:
+      1. vite.config.js has correct proxy
+      2. api/client.js has correct base URL and auth headers
+      3. AuthContext handles OAuth callback, session restoration, 401 handling
+      4. TESTING.md exists with setup instructions
+      5. Error boundaries are in place
+      Run: grep "proxy\|target\|host" /workspace/vallains/frontend/vite.config.js
+      Run: grep "401\|unauthorized\|logout" /workspace/vallains/frontend/src/context/AuthContext.jsx
