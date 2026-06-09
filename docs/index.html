@@ -1,675 +1,1210 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vallains - ماسح الأمان</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Vallains - Advanced Security Scanner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg-primary: #050505;
-      --bg-secondary: #0a0a0a;
-      --bg-tertiary: #111111;
-      --gold: #D4AF37;
-      --gold-dark: #b8941f;
-      --text-primary: #f5f5f7;
-      --text-secondary: #a1a1a1;
-      --border: #222222;
-      --success: #10b981;
-      --danger: #ef4444;
-      --warning: #f97316;
-    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg-primary: #030308;
+      --bg-secondary: #0a0a10;
+      --bg-card: #0f0f15;
+      --gold: #d4af37;
+      --gold-light: #f4d03f;
+      --gold-dark: #a67c00;
+      --text-primary: #ffffff;
+      --text-secondary: #8b8b9a;
+      --text-muted: #5a5a6e;
+      --border: rgba(212, 175, 55, 0.2);
+      --gradient-gold: linear-gradient(135deg, #d4af37, #f4d03f, #a67c00);
+      --gradient-dark: linear-gradient(180deg, #030308 0%, #0a0a10 100%);
+    }
+    
+    html { scroll-behavior: smooth; }
+    
     body {
-      font-family: 'Cairo', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-primary);
       color: var(--text-primary);
-      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
     }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
     
-    /* Navbar */
-    .navbar {
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
-      position: sticky;
+    /* Background Effects */
+    .bg-gradient {
+      position: fixed;
       top: 0;
-      z-index: 100;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(212, 175, 55, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(212, 175, 55, 0.08), transparent);
+      pointer-events: none;
+      z-index: -1;
     }
-    .nav-content {
+    
+    .noise {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    
+    /* Navigation */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1.5rem 0;
+      backdrop-filter: blur(20px);
+      background: rgba(3, 3, 8, 0.8);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    nav .container {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+    
     .logo {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--gold);
       text-decoration: none;
     }
+    
     .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.25rem;
-    }
-    .nav-links {
-      display: flex;
-      gap: 2rem;
-      list-style: none;
-    }
-    .nav-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-    .nav-links a:hover { color: var(--gold); }
-    .btn-login {
-      background: var(--gold);
-      color: var(--bg-primary);
-      padding: 0.5rem 1.5rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.3s;
-    }
-    .btn-login:hover { background: var(--gold-dark); }
-    
-    /* Hero */
-    .hero {
-      padding: 6rem 0;
-      text-align: center;
-      background: radial-gradient(ellipse at top, rgba(212,175,55,0.1) 0%, transparent 50%);
-    }
-    .hero h1 {
-      font-size: 3.5rem;
-      font-weight: 800;
-      margin-bottom: 1rem;
-      background: linear-gradient(135deg, var(--gold), #fff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero p {
-      font-size: 1.25rem;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin: 0 auto 2rem;
-      line-height: 1.8;
-    }
-    .hero-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 2rem;
-    }
-    .btn-primary {
-      background: var(--gold);
-      color: var(--bg-primary);
-      padding: 1rem 2.5rem;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
-    .btn-secondary {
-      background: transparent;
-      color: var(--gold);
-      padding: 1rem 2.5rem;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border: 2px solid var(--gold);
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .btn-secondary:hover { background: var(--gold); color: var(--bg-primary); }
-    
-    /* Scan Section */
-    .scan-section {
-      padding: 4rem 0;
-    }
-    .scan-box {
-      background: var(--bg-secondary);
-      border: 2px solid var(--border);
-      border-radius: 20px;
-      padding: 3rem;
-      text-align: center;
-    }
-    .scan-box h2 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--gold); }
-    .scan-box p { color: var(--text-secondary); margin-bottom: 2rem; }
-    .scan-input-wrapper {
-      display: flex;
-      gap: 1rem;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .scan-input {
-      flex: 1;
-      padding: 1rem 1.5rem;
-      border-radius: 12px;
-      border: 2px solid var(--border);
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      font-size: 1rem;
-      font-family: 'Cairo', sans-serif;
-      transition: border-color 0.3s;
-    }
-    .scan-input:focus {
-      outline: none;
-      border-color: var(--gold);
-    }
-    .scan-input::placeholder { color: var(--text-secondary); }
-    .btn-scan {
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      color: var(--bg-primary);
-      padding: 1rem 2rem;
-      border-radius: 12px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.3s;
-    }
-    .btn-scan:hover { transform: scale(1.05); }
-    
-    /* Features */
-    .features { padding: 4rem 0; }
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 3rem;
-    }
-    .feature-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      transition: all 0.3s;
-    }
-    .feature-card:hover {
-      border-color: var(--gold);
-      transform: translateY(-5px);
-    }
-    .feature-icon {
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      width: 48px;
+      height: 48px;
+      background: var(--gradient-gold);
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #000;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    }
+    
+    .logo-text {
       font-size: 1.75rem;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 3rem;
+      list-style: none;
+    }
+    
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color 0.3s;
+      position: relative;
+    }
+    
+    .nav-links a:hover { color: var(--gold); }
+    
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gold);
+      transition: width 0.3s;
+    }
+    
+    .nav-links a:hover::after { width: 100%; }
+    
+    .btn-gold {
+      background: var(--gradient-gold);
+      color: #000;
+      padding: 0.875rem 2rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.3s;
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+    }
+    
+    .btn-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
+    }
+    
+    /* Hero Section */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 8rem 0 4rem;
+      position: relative;
+    }
+    
+    .hero-content {
+      max-width: 900px;
+    }
+    
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      color: var(--gold);
+      margin-bottom: 2rem;
+    }
+    
+    .hero-badge span { animation: pulse 2s infinite; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .hero h1 {
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+    
+    .hero h1 .highlight {
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero-description {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 3rem;
+      line-height: 1.8;
+    }
+    
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .btn-primary-large {
+      background: var(--gradient-gold);
+      color: #000;
+      padding: 1.25rem 2.5rem;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.3s;
+      box-shadow: 0 8px 40px rgba(212, 175, 55, 0.4);
+    }
+    
+    .btn-primary-large:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 50px rgba(212, 175, 55, 0.6);
+    }
+    
+    .btn-outline-large {
+      background: transparent;
+      color: var(--text-primary);
+      padding: 1.25rem 2.5rem;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.3s;
+    }
+    
+    .btn-outline-large:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    
+    /* Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      margin-top: 5rem;
+      padding: 2rem 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .stat-label {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+    
+    /* Scanner Section */
+    .scanner-section {
+      padding: 6rem 0;
+    }
+    
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    
+    .section-label {
+      color: var(--gold);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+    
+    .section-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    
+    .section-desc {
+      color: var(--text-secondary);
+      font-size: 1.15rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .scanner-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .scanner-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--gradient-gold);
+    }
+    
+    .scanner-input-group {
+      display: flex;
+      gap: 1rem;
       margin-bottom: 1.5rem;
     }
-    .feature-card h3 { font-size: 1.25rem; margin-bottom: 0.75rem; }
-    .feature-card p { color: var(--text-secondary); line-height: 1.7; }
     
-    /* Results */
-    .results-section { padding: 4rem 0; }
-    .results-box {
+    .scanner-input {
+      flex: 1;
+      padding: 1.25rem 1.5rem;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
       background: var(--bg-secondary);
-      border: 2px solid var(--border);
-      border-radius: 20px;
-      padding: 2rem;
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s;
     }
-    .result-header {
+    
+    .scanner-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+    }
+    
+    .scanner-input::placeholder { color: var(--text-muted); }
+    
+    .btn-scan-large {
+      background: var(--gradient-gold);
+      color: #000;
+      padding: 1.25rem 3rem;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.3s;
+      white-space: nowrap;
+      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.3);
+    }
+    
+    .btn-scan-large:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 40px rgba(212, 175, 55, 0.5);
+    }
+    
+    .scanner-options {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    
+    .option-tag {
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--gold);
+    }
+    
+    /* Scan Progress */
+    .scan-progress {
+      display: none;
+      margin-top: 3rem;
+    }
+    
+    .scan-progress.active { display: block; }
+    
+    .progress-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
     }
-    .grade-badge {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: white;
-    }
-    .grade-a { background: linear-gradient(135deg, #10b981, #059669); }
-    .grade-b { background: linear-gradient(135deg, #22c55e, #16a34a); }
-    .grade-c { background: linear-gradient(135deg, #eab308, #ca8a04); }
-    .grade-d { background: linear-gradient(135deg, #f97316, #ea580c); }
-    .grade-f { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .result-stats {
-      display: flex;
-      gap: 1rem;
-    }
-    .stat-item {
-      text-align: center;
-      padding: 1rem 1.5rem;
-      background: var(--bg-tertiary);
-      border-radius: 12px;
-    }
-    .stat-item .value { font-size: 1.5rem; font-weight: 700; }
-    .stat-item .label { font-size: 0.85rem; color: var(--text-secondary); }
-    .stat-critical .value { color: var(--danger); }
-    .stat-high .value { color: var(--warning); }
-    .stat-medium .value { color: #eab308; }
-    .stat-info .value { color: var(--text-secondary); }
     
-    .vuln-list { margin-top: 2rem; }
-    .vuln-item {
-      background: var(--bg-tertiary);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-      border-right: 4px solid;
-    }
-    .vuln-critical { border-color: var(--danger); }
-    .vuln-high { border-color: var(--warning); }
-    .vuln-medium { border-color: #eab308; }
-    .vuln-low { border-color: #3b82f6; }
-    .vuln-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-    .vuln-name { font-weight: 600; font-size: 1.1rem; }
-    .vuln-badge {
-      padding: 0.25rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .vuln-badge.critical { background: var(--danger); color: white; }
-    .vuln-badge.high { background: var(--warning); color: white; }
-    .vuln-badge.medium { background: #eab308; color: black; }
-    .vuln-badge.low { background: #3b82f6; color: white; }
-    .vuln-desc { color: var(--text-secondary); font-size: 0.95rem; }
-    
-    /* Scan Progress */
-    .scan-progress {
-      background: var(--bg-secondary);
-      border: 2px solid var(--gold);
-      border-radius: 20px;
-      padding: 3rem;
-      text-align: center;
-    }
-    .progress-steps {
-      display: flex;
-      justify-content: space-between;
-      margin: 2rem 0;
-      position: relative;
-    }
-    .progress-line {
-      position: absolute;
-      top: 30px;
-      left: 50px;
-      right: 50px;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--gold), var(--gold-dark));
-      border-radius: 2px;
-      width: 75%;
-    }
-    .step {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-    }
-    .step-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: var(--bg-tertiary);
-      border: 3px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 0.75rem;
+    .progress-title {
       font-size: 1.5rem;
-    }
-    .step.completed .step-icon { background: var(--success); border-color: var(--success); }
-    .step.active .step-icon { background: var(--gold); border-color: var(--gold); animation: pulse 2s infinite; }
-    .step-label { font-size: 0.85rem; color: var(--text-secondary); }
-    .step.completed .step-label, .step.active .step-label { color: var(--text-primary); }
-    
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.4); }
-      50% { box-shadow: 0 0 0 15px rgba(212,175,55,0); }
+      font-weight: 700;
     }
     
     .progress-percent {
       font-size: 3rem;
-      font-weight: 800;
-      color: var(--gold);
+      font-weight: 900;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-gold);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    .scan-steps {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 1rem;
+    }
+    
+    .scan-step {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+    
+    .scan-step.active {
+      opacity: 1;
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.1);
+    }
+    
+    .scan-step.completed {
+      opacity: 1;
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    
+    .step-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .step-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .step-status {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .scan-step.active .step-status { color: var(--gold); }
+    .scan-step.completed .step-status { color: var(--success); }
+    
+    /* Results Section */
+    .results-section {
+      padding: 6rem 0;
+      display: none;
+    }
+    
+    .results-section.active { display: block; }
+    
+    .results-grid {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    
+    .grade-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .grade-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-gold);
+    }
+    
+    .grade-circle {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+      font-weight: 900;
+      margin: 0 auto 2rem;
+      color: #000;
+    }
+    
+    .grade-b .grade-circle { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .grade-c .grade-circle { background: linear-gradient(135deg, #eab308, #ca8a04); }
+    .grade-d .grade-circle { background: linear-gradient(135deg, #f97316, #ea580c); }
+    .grade-f .grade-circle { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    
+    .grade-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .grade-desc {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+    
+    .vulnerabilities-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .vuln-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      border-right: 4px solid;
+    }
+    
+    .vuln-critical { border-right-color: #ef4444; }
+    .vuln-high { border-right-color: #f97316; }
+    .vuln-medium { border-right-color: #eab308; }
+    .vuln-low { border-right-color: #3b82f6; }
+    
+    .vuln-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
       margin-bottom: 1rem;
     }
     
-    /* Demo Notice */
-    .demo-notice {
-      background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.05));
-      border: 1px solid var(--gold);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
+    .vuln-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    
+    .vuln-badge {
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .vuln-badge.critical { background: #ef4444; color: white; }
+    .vuln-badge.high { background: #f97316; color: white; }
+    .vuln-badge.medium { background: #eab308; color: black; }
+    .vuln-badge.low { background: #3b82f6; color: white; }
+    
+    .vuln-desc {
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    
+    .vuln-remediation {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      color: var(--gold);
+      font-size: 0.9rem;
+    }
+    
+    /* Features Section */
+    .features-section {
+      padding: 8rem 0;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      margin-top: 4rem;
+    }
+    
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      transition: all 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--gradient-gold);
+      transform: scaleX(0);
+      transition: transform 0.4s;
+    }
+    
+    .feature-card:hover::before { transform: scaleX(1); }
+    
+    .feature-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(212, 175, 55, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .feature-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+    
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+      padding: 8rem 0;
       text-align: center;
     }
-    .demo-notice h3 { color: var(--gold); margin-bottom: 0.5rem; }
-    .demo-notice p { color: var(--text-secondary); font-size: 0.95rem; }
+    
+    .cta-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--gradient-gold);
+    }
+    
+    .cta-box h2 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    
+    .cta-box p {
+      color: var(--text-secondary);
+      font-size: 1.25rem;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
     
     /* Footer */
-    .footer {
-      background: var(--bg-secondary);
-      border-top: 1px solid var(--border);
-      padding: 3rem 0;
-      margin-top: 4rem;
-      text-align: center;
+    footer {
+      padding: 4rem 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
     }
-    .footer p { color: var(--text-secondary); }
+    
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .footer-logo {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: var(--gradient-gold);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .footer-copy {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    
     .footer-links {
       display: flex;
-      justify-content: center;
       gap: 2rem;
-      margin-top: 1rem;
     }
-    .footer-links a { color: var(--text-secondary); text-decoration: none; transition: color 0.3s; }
+    
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s;
+    }
+    
     .footer-links a:hover { color: var(--gold); }
     
     /* Responsive */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .results-grid { grid-template-columns: 1fr; }
+      .scan-steps { grid-template-columns: repeat(3, 1fr); }
+    }
+    
     @media (max-width: 768px) {
-      .hero h1 { font-size: 2.5rem; }
       .nav-links { display: none; }
-      .scan-input-wrapper { flex-direction: column; }
-      .result-header { flex-direction: column; }
-      .result-stats { flex-wrap: wrap; justify-content: center; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: 1fr; }
+      .scanner-input-group { flex-direction: column; }
+      .scan-steps { grid-template-columns: repeat(2, 1fr); }
+      .footer-content { flex-direction: column; gap: 2rem; }
+      .hero h1 { font-size: 2.5rem; }
+    }
+    
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="container nav-content">
+  <div class="bg-gradient"></div>
+  <div class="noise"></div>
+  
+  <!-- Navigation -->
+  <nav>
+    <div class="container">
       <a href="#" class="logo">
         <div class="logo-icon">🔒</div>
-        Vallains
+        <span class="logo-text">Vallains</span>
       </a>
       <ul class="nav-links">
-        <li><a href="#features">المميزات</a></li>
-        <li><a href="#scanner">الفاحص</a></li>
-        <li><a href="#results">النتائج</a></li>
+        <li><a href="#scanner">Scanner</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#pricing">Pricing</a></li>
       </ul>
-      <a href="#" class="btn-login">تسجيل الدخول</a>
+      <a href="#" class="btn-gold">Get Started</a>
     </div>
   </nav>
   
   <!-- Hero -->
   <section class="hero">
     <div class="container">
-      <h1>🔒 ماسح الأمان المتقدم</h1>
-      <p>اكتشف الثغرات الأمنية في موقعك قبل الهجمات. فحص شامل يشمل SQL Injection، XSS، CSRF، وغيرها من الثغرات المعروفة.</p>
-      <div class="hero-actions">
-        <button class="btn-primary" onclick="startDemoScan()">🚀 ابدأ الفحص المجاني</button>
-        <button class="btn-secondary" onclick="document.getElementById('scanner').scrollIntoView({behavior:'smooth'})">📖了解更多</button>
-      </div>
-    </div>
-  </section>
-  
-  <!-- Scanner -->
-  <section class="scan-section" id="scanner">
-    <div class="container">
-      <div class="scan-box">
-        <h2>🛡️ فحص أمان شامل</h2>
-        <p>أدخل رابط الموقع لفحصه واكتشاف الثغرات الأمنية</p>
-        
-        <div class="scan-input-wrapper">
-          <input type="text" class="scan-input" id="targetUrl" placeholder="example.com" value="google.com">
-          <button class="btn-scan" onclick="startScan()">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span>●</span> Advanced Security Scanner v2.0
+        </div>
+        <h1>
+          Find <span class="highlight">Vulnerabilities</span><br>
+          Before Hackers Do
+        </h1>
+        <p class="hero-description">
+          Comprehensive security scanning for your web applications. 
+          Detect SQL Injection, XSS, CSRF, and 50+ other vulnerability types 
+          with our advanced AI-powered scanner.
+        </p>
+        <div class="hero-actions">
+          <button class="btn-primary-large" onclick="startScan()">
             <span>🔍</span>
-            <span>فحص</span>
+            <span>Start Free Scan</span>
+          </button>
+          <button class="btn-outline-large">
+            <span>📺</span>
+            <span>Watch Demo</span>
           </button>
         </div>
+        
+        <div class="stats-bar">
+          <div class="stat-item">
+            <div class="stat-value">50K+</div>
+            <div class="stat-label">Vulnerabilities Found</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">10K+</div>
+            <div class="stat-label">Websites Scanned</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">99.9%</div>
+            <div class="stat-label">Accuracy Rate</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">&lt;3min</div>
+            <div class="stat-label">Average Scan Time</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
   
-  <!-- Results -->
-  <section class="results-section" id="results">
+  <!-- Scanner Section -->
+  <section class="scanner-section" id="scanner">
     <div class="container">
-      <div class="demo-notice">
-        <h3>⚠️ عرض توضيحي (Demo Mode)</h3>
-        <p>هذا العرض يوضح شكل النتائج. للنشر الفعلي، deploy الـ backend على Railway أو Render.</p>
+      <div class="section-header">
+        <div class="section-label">Instant Scanner</div>
+        <h2 class="section-title">Scan Your Website Now</h2>
+        <p class="section-desc">
+          Enter your URL and get comprehensive security analysis in minutes
+        </p>
       </div>
       
-      <div class="results-box">
-        <div class="result-header">
-          <div>
-            <div class="grade-badge grade-b">B</div>
-          </div>
-          <div class="result-stats">
-            <div class="stat-item stat-critical">
-              <div class="value">0</div>
-              <div class="label">حرج</div>
-            </div>
-            <div class="stat-item stat-high">
-              <div class="value">2</div>
-              <div class="label">عالي</div>
-            </div>
-            <div class="stat-item stat-medium">
-              <div class="value">3</div>
-              <div class="label">متوسط</div>
-            </div>
-            <div class="stat-item stat-info">
-              <div class="value">5</div>
-              <div class="label">معلومات</div>
-            </div>
-          </div>
+      <div class="scanner-box">
+        <div class="scanner-input-group">
+          <input type="text" class="scanner-input" id="targetUrl" placeholder="https://example.com" value="google.com">
+          <button class="btn-scan-large" onclick="startScan()">
+            <span>🚀</span>
+            <span>Scan Now</span>
+          </button>
+        </div>
+        <div class="scanner-options">
+          <span class="option-tag">SQL Injection</span>
+          <span class="option-tag">XSS</span>
+          <span class="option-tag">CSRF</span>
+          <span class="option-tag">SSRF</span>
+          <span class="option-tag">Open Redirect</span>
+          <span class="option-tag">+45 more</span>
         </div>
         
-        <h3 style="margin-bottom: 1rem;">⚠️ الثغرات المكتشفة</h3>
-        <div class="vuln-list">
-          <div class="vuln-item vuln-high">
-            <div class="vuln-header">
-              <span class="vuln-name">🔓 SQL Injection</span>
-              <span class="vuln-badge high">عالي</span>
-            </div>
-            <p class="vuln-desc">تم اكتشاف نقطة إدخال محتملة لحقن SQL في parameter 'id'. يُنصح باستخدام prepared statements.</p>
+        <!-- Scan Progress -->
+        <div class="scan-progress" id="scanProgress">
+          <div class="progress-header">
+            <div class="progress-title">Scanning in progress...</div>
+            <div class="progress-percent" id="progressPercent">0%</div>
           </div>
-          <div class="vuln-item vuln-medium">
-            <div class="vuln-header">
-              <span class="vuln-name">⚠️ Missing CSP Header</span>
-              <span class="vuln-badge medium">متوسط</span>
-            </div>
-            <p class="vuln-desc">Content-Security-Policy header غير موجود. يُنصح إضافته لمنع XSS attacks.</p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
           </div>
-          <div class="vuln-item vuln-low">
-            <div class="vuln-header">
-              <span class="vuln-name">🔶 Open Redirect</span>
-              <span class="vuln-badge low">منخفض</span>
+          <div class="scan-steps">
+            <div class="scan-step" id="step-dns">
+              <div class="step-icon">🌐</div>
+              <div class="step-name">DNS</div>
+              <div class="step-status">Pending</div>
             </div>
-            <p class="vuln-desc">تم اكتشاف مسار إعادة توجيه. تأكد من التحقق من المدخلات.</p>
+            <div class="scan-step" id="step-ssl">
+              <div class="step-icon">🔐</div>
+              <div class="step-name">SSL</div>
+              <div class="step-status">Pending</div>
+            </div>
+            <div class="scan-step" id="step-ports">
+              <div class="step-icon">🚪</div>
+              <div class="step-name">Ports</div>
+              <div class="step-status">Pending</div>
+            </div>
+            <div class="scan-step" id="step-sqli">
+              <div class="step-icon">💉</div>
+              <div class="step-name">SQLi</div>
+              <div class="step-status">Pending</div>
+            </div>
+            <div class="scan-step" id="step-xss">
+              <div class="step-icon">⚡</div>
+              <div class="step-name">XSS</div>
+              <div class="step-status">Pending</div>
+            </div>
+            <div class="scan-step" id="step-cors">
+              <div class="step-icon">🔄</div>
+              <div class="step-name">CORS</div>
+              <div class="step-status">Pending</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </section>
   
-  <!-- Scan Progress (Hidden by default) -->
-  <section class="scan-section" id="scanProgress" style="display: none;">
+  <!-- Results Section -->
+  <section class="results-section" id="results">
     <div class="container">
-      <div class="scan-progress">
-        <h2>🔄 جاري الفحص...</h2>
-        <div class="progress-percent" id="progressPercent">0%</div>
+      <div class="section-header">
+        <div class="section-label">Scan Results</div>
+        <h2 class="section-title">Vulnerabilities Found</h2>
+      </div>
+      
+      <div class="results-grid">
+        <div class="grade-card grade-b">
+          <div class="grade-circle">B</div>
+          <div class="grade-title">Good Security</div>
+          <div class="grade-desc">Your website has minor issues that should be addressed</div>
+        </div>
         
-        <div class="progress-steps">
-          <div class="progress-line"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="vulnerabilities-list">
+          <div class="vuln-card vuln-high">
+            <div class="vuln-header">
+              <div class="vuln-name">💉 SQL Injection</div>
+              <span class="vuln-badge high">High</span>
+            </div>
+            <p class="vuln-desc">
+              Potential SQL injection vulnerability detected in parameter 'id'. 
+              Attackers could manipulate database queries to access sensitive data.
+            </p>
+            <div class="vuln-remediation">
+              → Use parameterized queries (Prepared Statements) or ORM frameworks
+            </div>
+          </div>
           
-          <div class="step" id="step-dns">
-            <div class="step-icon">🌐</div>
-            <div class="step-label">DNS</div>
+          <div class="vuln-card vuln-medium">
+            <div class="vuln-header">
+              <div class="vuln-name">⚡ Missing Content Security Policy</div>
+              <span class="vuln-badge medium">Medium</span>
+            </div>
+            <p class="vuln-desc">
+              Content-Security-Policy header is missing. This could allow 
+              Cross-Site Scripting (XSS) attacks.
+            </p>
+            <div class="vuln-remediation">
+              → Implement strict CSP headers to prevent XSS attacks
+            </div>
           </div>
-          <div class="step" id="step-ssl">
-            <div class="step-icon">🔐</div>
-            <div class="step-label">SSL</div>
-          </div>
-          <div class="step" id="step-ports">
-            <div class="step-icon">🚪</div>
-            <div class="step-label">Ports</div>
-          </div>
-          <div class="step" id="step-sqli">
-            <div class="step-icon">💉</div>
-            <div class="step-label">SQLi</div>
-          </div>
-          <div class="step" id="step-xss">
-            <div class="step-icon">⚡</div>
-            <div class="step-label">XSS</div>
-          </div>
-          <div class="step" id="step-cors">
-            <div class="step-icon">🔄</div>
-            <div class="step-label">CORS</div>
+          
+          <div class="vuln-card vuln-low">
+            <div class="vuln-header">
+              <div class="vuln-name">🔶 Open Redirect</div>
+              <span class="vuln-badge low">Low</span>
+            </div>
+            <p class="vuln-desc">
+              Open redirect vulnerability detected in the logout flow. 
+              Could be exploited for phishing attacks.
+            </p>
+            <div class="vuln-remediation">
+              → Validate and whitelist redirect URLs before processing
+            </div>
           </div>
         </div>
-        
-        <p style="color: var(--text-secondary); margin-top: 1rem;" id="currentStep">جاري فحص DNS...</p>
       </div>
     </div>
   </section>
   
-  <!-- Features -->
-  <section class="features" id="features">
+  <!-- Features Section -->
+  <section class="features-section" id="features">
     <div class="container">
-      <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem;">🛡️ مميزات Vallains</h2>
-      <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem;">فحص شامل ومتكامل لجميع أنواع الثغرات الأمنية</p>
+      <div class="section-header">
+        <div class="section-label">Capabilities</div>
+        <h2 class="section-title">What We Scan</h2>
+        <p class="section-desc">
+          Comprehensive vulnerability detection across all attack vectors
+        </p>
+      </div>
       
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon">💉</div>
           <h3>SQL Injection</h3>
-          <p>اكتشاف ثغرات حقن SQL التي تسمح للمهاجمين بالتلاعب بقواعد البيانات.</p>
+          <p>Detect SQL injection vulnerabilities that could allow attackers to access your database.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">⚡</div>
           <h3>Cross-Site Scripting</h3>
-          <p>فحص ثغرات XSS التي تسمح بحقن أكواد خبيثة في صفحات الموقع.</p>
+          <p>Find XSS vulnerabilities that could allow malicious script injection.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🔄</div>
-          <h3>Open Redirect</h3>
-          <p>اكتشاف ثغرات إعادة التوجيه المفتوحة التي قد تُستخدم في التصيد.</p>
+          <div class="feature-icon">🔐</div>
+          <h3>CSRF Protection</h3>
+          <p>Check if your application has proper CSRF token validation.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">🌐</div>
           <h3>SSRF</h3>
-          <p>فحص Server-Side Request Forgery التي تسمح بالوصول لموارد داخلية.</p>
+          <p>Detect Server-Side Request Forgery vulnerabilities for internal access.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Open Redirect</h3>
+          <p>Find open redirect vulnerabilities that could be used in phishing attacks.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">📁</div>
-          <h3>Directory Traversal</h3>
-          <p>اكتشاف ثغرات التنقل في الملفات التي تسمح بالوصول لملفات حساسة.</p>
+          <h3>Path Traversal</h3>
+          <p>Detect directory traversal vulnerabilities for file access.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">💻</div>
           <h3>Command Injection</h3>
-          <p>فحص ثغرات حقن الأوامر التي تسمح بتنفيذ أوامر على الخادم.</p>
+          <p>Find command injection vulnerabilities that could execute OS commands.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <h3>CORS Misconfiguration</h3>
-          <p>فحص إعدادات CORS الخاطئة التي قد تسمح بالوصول غير المصرح.</p>
+          <div class="feature-icon">🔑</div>
+          <h3>Authentication</h3>
+          <p>Test your authentication mechanisms for weaknesses and bypasses.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">📄</div>
+          <div class="feature-icon">🔑</div>
           <h3>XXE</h3>
-          <p>اكتشاف XML External Entity vulnerabilities.</p>
+          <p>Detect XML External Entity vulnerabilities in XML parsers.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔑</div>
+          <h3>CORS Misconfiguration</h3>
+          <p>Find CORS misconfigurations that could expose sensitive data.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔑</div>
+          <h3>Security Headers</h3>
+          <p>Check for missing security headers like CSP, HSTS, X-Frame-Options.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔑</div>
+          <h3>+40 More</h3>
+          <p>And many more vulnerability types including subdomain takeover, sensitive data exposure, and more.</p>
         </div>
       </div>
     </div>
   </section>
   
-  <!-- Footer -->
-  <footer class="footer">
+  <!-- CTA Section -->
+  <section class="cta-section">
     <div class="container">
-      <p>© 2024 Vallains Security Scanner. جميع الحقوق محفوظة.</p>
-      <div class="footer-links">
-        <a href="#">الخصوصية</a>
-        <a href="#">الشروط</a>
-        <a href="#">تواصل معنا</a>
+      <div class="cta-box">
+        <h2>Ready to Secure Your Website?</h2>
+        <p>Start scanning now and get detailed reports on vulnerabilities in your web applications.</p>
+        <button class="btn-primary-large" onclick="startScan()">
+          <span>🚀</span>
+          <span>Scan Now - It's Free</span>
+        </button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-left">
+          <span class="footer-logo">Vallains</span>
+          <span class="footer-copy">© 2024 Advanced Security Scanner</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+          <a href="#">Documentation</a>
+        </div>
       </div>
     </div>
   </footer>
   
   <script>
     const steps = [
-      { id: 'dns', label: 'DNS', progress: 15 },
-      { id: 'ssl', label: 'SSL', progress: 30 },
-      { id: 'ports', label: 'Ports', progress: 45 },
-      { id: 'sqli', label: 'SQLi', progress: 60 },
-      { id: 'xss', label: 'XSS', progress: 75 },
-      { id: 'cors', label: 'CORS', progress: 90 }
+      { id: 'dns', name: 'DNS', icon: '🌐', progress: 15 },
+      { id: 'ssl', name: 'SSL', icon: '🔐', progress: 30 },
+      { id: 'ports', name: 'Ports', icon: '🚪', progress: 45 },
+      { id: 'sqli', name: 'SQLi', icon: '💉', progress: 60 },
+      { id: 'xss', name: 'XSS', icon: '⚡', progress: 75 },
+      { id: 'cors', name: 'CORS', icon: '🔄', progress: 90 }
     ];
     
     let currentStep = 0;
     
-    function startDemoScan() {
-      document.getElementById('scanProgress').style.display = 'block';
-      document.getElementById('results').style.display = 'none';
-      document.getElementById('scanner').scrollIntoView({ behavior: 'smooth' });
-      simulateScan();
-    }
-    
     function startScan() {
       const url = document.getElementById('targetUrl').value;
       if (!url) {
-        alert('الرجاء إدخال رابط الموقع');
+        alert('Please enter a URL to scan');
         return;
       }
-      startDemoScan();
+      
+      // Hide results, show progress
+      document.querySelector('.results-section').classList.remove('active');
+      document.getElementById('scanProgress').classList.add('active');
+      
+      // Scroll to scanner
+      document.getElementById('scanner').scrollIntoView({ behavior: 'smooth' });
+      
+      // Reset steps
+      document.querySelectorAll('.scan-step').forEach(step => {
+        step.classList.remove('active', 'completed');
+      });
+      
+      currentStep = 0;
+      simulateScan();
     }
     
     function simulateScan() {
-      currentStep = 0;
-      
       const interval = setInterval(() => {
         if (currentStep >= steps.length) {
           clearInterval(interval);
-          document.getElementById('scanProgress').style.display = 'none';
-          document.getElementById('results').style.display = 'block';
-          document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+          completeScan();
           return;
         }
         
         const step = steps[currentStep];
+        
+        // Update progress
         document.getElementById('progressPercent').textContent = step.progress + '%';
         document.getElementById('progressFill').style.width = step.progress + '%';
-        document.getElementById('currentStep').textContent = 'جاري فحص ' + step.label + '...';
         
-        // Update step classes
-        document.querySelectorAll('.step').forEach((el, idx) => {
-          el.classList.remove('active', 'completed');
-          if (idx < currentStep) el.classList.add('completed');
-          if (idx === currentStep) el.classList.add('active');
+        // Update steps
+        document.querySelectorAll('.scan-step').forEach((el, idx) => {
+          if (idx < currentStep) {
+            el.classList.remove('active');
+            el.classList.add('completed');
+            el.querySelector('.step-status').textContent = 'Done';
+          }
+          if (idx === currentStep) {
+            el.classList.remove('completed');
+            el.classList.add('active');
+            el.querySelector('.step-status').textContent = 'Scanning...';
+          }
         });
         
         currentStep++;
       }, 800);
     }
     
-    // Auto-run demo on page load
+    function completeScan() {
+      document.getElementById('progressPercent').textContent = '100%';
+      document.getElementById('progressFill').style.width = '100%';
+      
+      // Mark all as completed
+      document.querySelectorAll('.scan-step').forEach(el => {
+        el.classList.remove('active');
+        el.classList.add('completed');
+        el.querySelector('.step-status').textContent = 'Done';
+      });
+      
+      // Show results after delay
+      setTimeout(() => {
+        document.getElementById('scanProgress').classList.remove('active');
+        document.querySelector('.results-section').classList.add('active');
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    }
+    
+    // Auto-start demo on load
     window.addEventListener('load', () => {
-      setTimeout(startDemoScan, 1500);
+      setTimeout(startScan, 2000);
     });
   </script>
 </body>
