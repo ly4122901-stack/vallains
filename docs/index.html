@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vallains - Advanced Security Scanner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -12,6 +12,7 @@
       --bg-primary: #030308;
       --bg-secondary: #0a0a10;
       --bg-card: #0f0f18;
+      --bg-card-hover: #141420;
       --gold: #d4af37;
       --gold-light: #f4d03f;
       --gold-dark: #a67c00;
@@ -21,7 +22,9 @@
       --success: #10b981;
       --danger: #ef4444;
       --warning: #f97316;
+      --info: #3b82f6;
       --border: rgba(212, 175, 55, 0.15);
+      --font-mono: 'JetBrains Mono', monospace;
     }
     
     html { scroll-behavior: smooth; }
@@ -34,95 +37,37 @@
       overflow-x: hidden;
     }
     
-    /* Animated Background */
-    .bg-animation {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: -2;
-      overflow: hidden;
-    }
-    
+    /* Background */
     .bg-gradient {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background: 
         radial-gradient(ellipse 100% 80% at 20% 0%, rgba(212, 175, 55, 0.12), transparent 50%),
-        radial-gradient(ellipse 80% 60% at 80% 100%, rgba(212, 175, 55, 0.08), transparent 50%),
-        radial-gradient(ellipse 60% 50% at 50% 50%, rgba(212, 175, 55, 0.03), transparent 70%);
+        radial-gradient(ellipse 80% 60% at 80% 100%, rgba(212, 175, 55, 0.08), transparent 50%);
       z-index: -1;
     }
     
-    .particles {
+    .grid-bg {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      overflow: hidden;
-    }
-    
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: var(--gold);
-      border-radius: 50%;
-      opacity: 0.3;
-      animation: float-particle 15s infinite;
-    }
-    
-    @keyframes float-particle {
-      0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 0.3; }
-      90% { opacity: 0.3; }
-      100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
-    }
-    
-    /* Grid Lines */
-    .grid-lines {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-image: 
         linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
         linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
+      background-size: 60px 60px;
       z-index: -1;
     }
     
-    /* Container */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 2rem;
-    }
+    .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; }
     
     /* Navigation */
     nav {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       z-index: 1000;
-      padding: 1.25rem 0;
+      padding: 1rem 0;
       backdrop-filter: blur(20px);
-      background: rgba(3, 3, 8, 0.85);
+      background: rgba(3, 3, 8, 0.9);
       border-bottom: 1px solid rgba(255,255,255,0.05);
-      transition: all 0.3s;
-    }
-    
-    nav.scrolled {
-      padding: 0.75rem 0;
-      background: rgba(3, 3, 8, 0.95);
     }
     
     nav .container {
@@ -136,14 +81,10 @@
       align-items: center;
       gap: 0.75rem;
       text-decoration: none;
-      transition: transform 0.3s;
     }
     
-    .logo:hover { transform: scale(1.05); }
-    
     .logo-icon {
-      width: 52px;
-      height: 52px;
+      width: 48px; height: 48px;
       background: linear-gradient(135deg, #d4af37, #f4d03f);
       border-radius: 14px;
       display: flex;
@@ -153,1091 +94,715 @@
       font-weight: 800;
       color: #000;
       box-shadow: 0 8px 32px rgba(212, 175, 55, 0.4);
-      animation: glow 3s ease-in-out infinite;
-    }
-    
-    @keyframes glow {
-      0%, 100% { box-shadow: 0 8px 32px rgba(212, 175, 55, 0.4); }
-      50% { box-shadow: 0 8px 48px rgba(212, 175, 55, 0.7); }
     }
     
     .logo-text {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 800;
       background: linear-gradient(135deg, #d4af37, #f4d03f);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
     }
     
-    .nav-links {
-      display: flex;
-      gap: 3rem;
-      list-style: none;
-    }
-    
-    .nav-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.95rem;
-      transition: all 0.3s;
-      position: relative;
-    }
-    
-    .nav-links a:hover { color: var(--gold); }
-    
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--gold), var(--gold-light));
-      transition: width 0.3s;
-    }
-    
-    .nav-links a:hover::after { width: 100%; }
-    
-    .btn-gold {
-      background: linear-gradient(135deg, #d4af37, #f4d03f);
-      color: #000;
-      padding: 0.75rem 1.75rem;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      text-decoration: none;
-      transition: all 0.3s;
-      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
-      border: none;
-      cursor: pointer;
-    }
-    
-    .btn-gold:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5);
-    }
-    
-    /* Hero Section */
-    .hero {
-      min-height: 100vh;
+    .nav-status {
       display: flex;
       align-items: center;
-      padding: 8rem 0 4rem;
-      position: relative;
+      gap: 0.5rem;
+      color: var(--success);
+      font-size: 0.9rem;
     }
     
-    .hero-content {
-      max-width: 900px;
-      position: relative;
-    }
-    
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(212, 175, 55, 0.1);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      padding: 0.6rem 1.25rem;
-      border-radius: 50px;
-      font-size: 0.85rem;
-      color: var(--gold);
-      margin-bottom: 2rem;
-      animation: fadeInUp 0.8s ease;
-    }
-    
-    .hero-badge .dot {
-      width: 8px;
-      height: 8px;
+    .status-dot {
+      width: 8px; height: 8px;
       background: var(--success);
       border-radius: 50%;
-      animation: pulse-dot 2s infinite;
+      animation: pulse 2s infinite;
     }
     
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.2); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
     
-    .hero h1 {
-      font-size: clamp(3.5rem, 10vw, 6rem);
-      font-weight: 900;
-      line-height: 1.05;
-      margin-bottom: 1.5rem;
-      letter-spacing: -0.03em;
-      animation: fadeInUp 0.8s ease 0.2s backwards;
-    }
-    
-    .hero h1 .gradient-text {
-      background: linear-gradient(135deg, #d4af37, #f4d03f, #fff, #d4af37);
-      background-size: 300% 300%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: gradient-shift 5s ease infinite;
-    }
-    
-    @keyframes gradient-shift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-    
-    .hero-description {
-      font-size: 1.35rem;
-      color: var(--text-secondary);
-      max-width: 650px;
-      margin-bottom: 3rem;
-      line-height: 1.8;
-      animation: fadeInUp 0.8s ease 0.4s backwards;
-    }
-    
-    .hero-actions {
-      display: flex;
-      gap: 1.25rem;
-      flex-wrap: wrap;
-      animation: fadeInUp 0.8s ease 0.6s backwards;
-    }
-    
-    .btn-primary-hero {
-      background: linear-gradient(135deg, #d4af37, #f4d03f);
-      color: #000;
-      padding: 1.25rem 2.5rem;
-      border-radius: 16px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      border: none;
-      cursor: pointer;
+    /* Hero / Scanner Section */
+    .scanner-hero {
+      min-height: 60vh;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 8px 40px rgba(212, 175, 55, 0.4);
-      position: relative;
-      overflow: hidden;
+      padding: 8rem 0 3rem;
     }
     
-    .btn-primary-hero::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      transition: left 0.5s;
-    }
-    
-    .btn-primary-hero:hover::before { left: 100%; }
-    
-    .btn-primary-hero:hover {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 12px 50px rgba(212, 175, 55, 0.6);
-    }
-    
-    .btn-secondary-hero {
-      background: transparent;
-      color: var(--text-primary);
-      padding: 1.25rem 2.5rem;
-      border-radius: 16px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      border: 2px solid rgba(255,255,255,0.15);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      transition: all 0.3s;
-    }
-    
-    .btn-secondary-hero:hover {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: rgba(212, 175, 55, 0.05);
-    }
-    
-    /* Floating Shield */
-    .floating-shield {
-      position: absolute;
-      right: -100px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 500px;
-      height: 500px;
-      opacity: 0.1;
-      animation: float 6s ease-in-out infinite;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(-50%) rotate(0deg); }
-      50% { transform: translateY(-60%) rotate(5deg); }
-    }
-    
-    /* Stats */
-    .stats-bar {
+    .scanner-hero .container {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 2rem;
-      margin-top: 5rem;
-      padding: 2.5rem 0;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      animation: fadeInUp 0.8s ease 0.8s backwards;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
     }
     
-    .stat-item {
-      text-align: center;
-      position: relative;
-    }
-    
-    .stat-item::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 1px;
-      height: 60%;
-      background: rgba(255,255,255,0.05);
-    }
-    
-    .stat-item:last-child::after { display: none; }
-    
-    .stat-value {
-      font-size: 3.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #d4af37, #f4d03f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1;
-    }
-    
-    .stat-label {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-    }
-    
-    /* Scanner Section */
-    .scanner-section {
-      padding: 8rem 0;
-      position: relative;
-    }
-    
-    .section-label {
-      display: inline-block;
-      color: var(--gold);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      margin-bottom: 1rem;
-      position: relative;
-    }
-    
-    .section-label::before,
-    .section-label::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      width: 40px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold));
-    }
-    
-    .section-label::before { right: 100%; margin-right: 1rem; }
-    .section-label::after { left: 100%; margin-left: 1rem; background: linear-gradient(90deg, var(--gold), transparent); }
-    
-    .section-title {
-      font-size: clamp(2.5rem, 6vw, 4rem);
+    .hero-content h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
       font-weight: 900;
       margin-bottom: 1rem;
-      letter-spacing: -0.02em;
+      line-height: 1.1;
     }
     
-    .section-desc {
+    .hero-content h1 .gold { color: var(--gold); }
+    
+    .hero-content p {
+      font-size: 1.15rem;
       color: var(--text-secondary);
-      font-size: 1.2rem;
-      max-width: 650px;
-      margin: 0 auto 4rem;
-      line-height: 1.8;
+      margin-bottom: 2rem;
     }
     
     .scanner-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 32px;
-      padding: 3.5rem;
-      max-width: 1000px;
-      margin: 0 auto;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 20px 100px rgba(0, 0, 0, 0.3);
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
     
-    .scanner-box::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+    .scanner-box h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--gold);
     }
     
-    .scanner-box::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
-      animation: rotate 20s linear infinite;
-    }
-    
-    @keyframes rotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    
-    .scanner-input-group {
+    .input-group {
       display: flex;
-      gap: 1.25rem;
-      position: relative;
-      z-index: 1;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
     
-    .scanner-input {
+    .input-field {
       flex: 1;
-      padding: 1.5rem 2rem;
-      border-radius: 18px;
+      padding: 1.25rem 1.5rem;
+      border-radius: 14px;
       border: 2px solid rgba(255,255,255,0.08);
-      background: rgba(10, 10, 16, 0.8);
+      background: var(--bg-secondary);
       color: var(--text-primary);
-      font-size: 1.15rem;
+      font-size: 1rem;
       font-family: 'Inter', sans-serif;
       transition: all 0.3s;
     }
     
-    .scanner-input:focus {
+    .input-field:focus {
       outline: none;
       border-color: var(--gold);
-      box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15), 0 0 40px rgba(212, 175, 55, 0.1);
+      box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
     }
     
-    .scanner-input::placeholder { color: var(--text-muted); }
-    
-    .btn-scan-hero {
+    .btn-scan {
       background: linear-gradient(135deg, #d4af37, #f4d03f);
       color: #000;
-      padding: 1.5rem 3rem;
-      border-radius: 18px;
-      font-weight: 800;
-      font-size: 1.15rem;
+      padding: 1.25rem 2.5rem;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 1rem;
       border: none;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 8px 40px rgba(212, 175, 55, 0.4);
+      transition: all 0.3s;
+      box-shadow: 0 8px 30px rgba(212, 175, 55, 0.3);
       white-space: nowrap;
     }
     
-    .btn-scan-hero:hover {
-      transform: scale(1.05);
-      box-shadow: 0 12px 50px rgba(212, 175, 55, 0.6);
-    }
-    
-    .scanner-options {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      margin-top: 1.5rem;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .option-tag {
-      background: rgba(212, 175, 55, 0.08);
-      border: 1px solid rgba(212, 175, 55, 0.2);
-      padding: 0.5rem 1rem;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      color: var(--gold);
-      transition: all 0.3s;
-    }
-    
-    .option-tag:hover {
-      background: rgba(212, 175, 55, 0.15);
+    .btn-scan:hover {
       transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(212, 175, 55, 0.5);
+    }
+    
+    .scan-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .scan-option {
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--gold);
     }
     
     /* Scan Progress */
     .scan-progress {
       display: none;
-      margin-top: 3rem;
-      position: relative;
-      z-index: 1;
+      margin-top: 2rem;
     }
     
-    .scan-progress.active { display: block; animation: fadeIn 0.5s ease; }
+    .scan-progress.active { display: block; }
+    
+    .progress-bar-container {
+      margin-bottom: 2rem;
+    }
     
     .progress-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    
-    .progress-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    
-    .progress-percent {
-      font-size: 3.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #d4af37, #f4d03f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      margin-bottom: 0.75rem;
     }
     
     .progress-bar {
-      height: 10px;
+      height: 8px;
       background: rgba(255,255,255,0.05);
-      border-radius: 5px;
+      border-radius: 4px;
       overflow: hidden;
-      margin-bottom: 3rem;
     }
     
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
-      border-radius: 5px;
+      border-radius: 4px;
       width: 0%;
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-    }
-    
-    .progress-fill::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      animation: shimmer 1.5s infinite;
-    }
-    
-    @keyframes shimmer {
-      from { transform: translateX(-100%); }
-      to { transform: translateX(100%); }
+      transition: width 0.5s ease;
     }
     
     .scan-steps {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 1.25rem;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 1rem;
     }
     
     .scan-step {
-      background: rgba(10, 10, 16, 0.6);
+      background: var(--bg-secondary);
       border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 20px;
-      padding: 1.75rem 1rem;
+      border-radius: 12px;
+      padding: 1rem 0.5rem;
       text-align: center;
-      opacity: 0.4;
-      transition: all 0.4s;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .scan-step::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--gold);
-      transform: scaleX(0);
-      transition: transform 0.3s;
+      opacity: 0.5;
+      transition: all 0.3s;
     }
     
     .scan-step.active {
       opacity: 1;
-      border-color: rgba(212, 175, 55, 0.3);
-      background: rgba(212, 175, 55, 0.08);
-      transform: scale(1.05);
-      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.1);
     }
-    
-    .scan-step.active::before { transform: scaleX(1); }
     
     .scan-step.completed {
       opacity: 1;
-      border-color: rgba(16, 185, 129, 0.3);
-      background: rgba(16, 185, 129, 0.08);
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
     }
     
-    .scan-step.completed::before {
-      background: var(--success);
-      transform: scaleX(1);
-    }
-    
-    .step-icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.75rem;
-      display: block;
-    }
-    
-    .step-name {
-      font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 0.25rem;
-    }
-    
-    .step-status {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-    
-    .scan-step.active .step-status { color: var(--gold); }
-    .scan-step.completed .step-status { color: var(--success); }
+    .step-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .step-name { font-size: 0.75rem; font-weight: 600; }
+    .step-status { font-size: 0.65rem; color: var(--text-muted); }
     
     /* Results Section */
     .results-section {
-      padding: 8rem 0;
+      padding: 4rem 0;
       display: none;
     }
     
-    .results-section.active { display: block; animation: fadeIn 0.6s ease; }
+    .results-section.active { display: block; }
     
-    .results-grid {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 3rem;
-      align-items: start;
-    }
-    
-    .grade-card {
+    /* Target Info Bar */
+    .target-info-bar {
       background: var(--bg-card);
-      border: 2px solid var(--border);
-      border-radius: 28px;
-      padding: 3rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2rem;
     }
     
-    .grade-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
-    }
-    
-    .grade-circle {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
+    .target-main h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 5.5rem;
-      font-weight: 900;
-      margin: 0 auto 2rem;
-      color: #000;
-      position: relative;
-      animation: grade-appear 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      gap: 0.5rem;
     }
     
-    @keyframes grade-appear {
-      from { transform: scale(0); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+    .target-main .url {
+      font-family: var(--font-mono);
+      color: var(--gold);
+      font-size: 1.1rem;
     }
     
-    .grade-b .grade-circle { 
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      box-shadow: 0 0 60px rgba(34, 197, 94, 0.5);
+    .target-stat {
+      text-align: center;
     }
     
-    .grade-c .grade-circle { 
-      background: linear-gradient(135deg, #eab308, #ca8a04);
-      box-shadow: 0 0 60px rgba(234, 179, 8, 0.5);
-    }
-    
-    .grade-d .grade-circle { 
-      background: linear-gradient(135deg, #f97316, #ea580c);
-      box-shadow: 0 0 60px rgba(249, 115, 22, 0.5);
-    }
-    
-    .grade-f .grade-circle { 
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      box-shadow: 0 0 60px rgba(239, 68, 68, 0.5);
-    }
-    
-    .grade-title {
-      font-size: 1.5rem;
+    .target-stat .value {
+      font-size: 2rem;
       font-weight: 800;
-      margin-bottom: 0.5rem;
     }
     
-    .grade-desc {
+    .target-stat .label {
+      font-size: 0.8rem;
       color: var(--text-secondary);
-      font-size: 0.95rem;
+      text-transform: uppercase;
     }
     
-    .vulnerabilities-list {
+    .grade-a .value { color: var(--success); }
+    .grade-b .value { color: #22c55e; }
+    .grade-c .value { color: var(--warning); }
+    .grade-d .value { color: #f97316; }
+    .grade-f .value { color: var(--danger); }
+    
+    /* Tabs */
+    .results-tabs {
       display: flex;
-      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      overflow-x: auto;
+    }
+    
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 1rem 1.5rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+    
+    .tab-btn:hover { color: var(--text-primary); }
+    
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+    
+    .tab-badge {
+      background: var(--danger);
+      color: white;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      margin-right: 0.5rem;
+    }
+    
+    /* Tab Content */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    /* Info Cards Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s;
+    }
+    
+    .info-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+    
+    .info-card h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .info-card h3 .icon { font-size: 1.25rem; }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 0.9rem;
+    }
+    
+    .info-row:last-child { border-bottom: none; }
+    
+    .info-row .label { color: var(--text-secondary); }
+    .info-row .value { font-weight: 600; font-family: var(--font-mono); font-size: 0.85rem; }
+    .info-row .value.success { color: var(--success); }
+    .info-row .value.danger { color: var(--danger); }
+    .info-row .value.warning { color: var(--warning); }
+    .info-row .value.info { color: var(--info); }
+    
+    /* Data Tables */
+    .data-table {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    
+    .data-table-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .data-table-header h3 {
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .data-table-header .count {
+      background: var(--gold);
+      color: #000;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    
+    .data-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .data-table th {
+      text-align: left;
+      padding: 1rem 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 600;
+      background: rgba(255,255,255,0.02);
+    }
+    
+    .data-table td {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 0.9rem;
+    }
+    
+    .data-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .data-table tr:last-child td { border-bottom: none; }
+    
+    .status-badge {
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-open { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .status-closed { background: rgba(255,255,255,0.05); color: var(--text-muted); }
+    .status-critical { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .status-high { background: rgba(249, 115, 22, 0.15); color: var(--warning); }
+    .status-medium { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+    .status-low { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+    .status-info { background: rgba(139, 139, 154, 0.15); color: var(--text-secondary); }
+    
+    /* Vulnerability Cards */
+    .vuln-grid {
+      display: grid;
       gap: 1.5rem;
     }
     
     .vuln-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      border-right: 5px solid;
-      transition: all 0.4s;
-      animation: slideIn 0.5s ease backwards;
-    }
-    
-    .vuln-card:nth-child(1) { animation-delay: 0.1s; }
-    .vuln-card:nth-child(2) { animation-delay: 0.2s; }
-    .vuln-card:nth-child(3) { animation-delay: 0.3s; }
-    
-    @keyframes slideIn {
-      from { transform: translateX(30px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      border-radius: 16px;
+      padding: 1.5rem;
+      border-right: 4px solid;
+      transition: all 0.3s;
     }
     
     .vuln-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      background: var(--bg-card-hover);
+      transform: translateX(5px);
     }
     
-    .vuln-critical { border-right-color: var(--danger); }
-    .vuln-high { border-right-color: var(--warning); }
-    .vuln-medium { border-right-color: #eab308; }
-    .vuln-low { border-right-color: #3b82f6; }
+    .vuln-card.critical { border-right-color: var(--danger); }
+    .vuln-card.high { border-right-color: var(--warning); }
+    .vuln-card.medium { border-right-color: #eab308; }
+    .vuln-card.low { border-right-color: var(--info); }
+    .vuln-card.info { border-right-color: var(--text-secondary); }
     
     .vuln-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       margin-bottom: 1rem;
-      gap: 1rem;
     }
     
-    .vuln-name {
-      font-size: 1.3rem;
-      font-weight: 700;
+    .vuln-title {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
     
-    .vuln-badge {
-      padding: 0.4rem 1rem;
-      border-radius: 10px;
+    .vuln-title h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    
+    .vuln-severity {
+      padding: 0.35rem 1rem;
+      border-radius: 8px;
       font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      flex-shrink: 0;
     }
     
-    .vuln-badge.critical { background: var(--danger); color: white; }
-    .vuln-badge.high { background: var(--warning); color: white; }
-    .vuln-badge.medium { background: #eab308; color: black; }
-    .vuln-badge.low { background: #3b82f6; color: white; }
+    .vuln-severity.critical { background: var(--danger); color: white; }
+    .vuln-severity.high { background: var(--warning); color: white; }
+    .vuln-severity.medium { background: #eab308; color: black; }
+    .vuln-severity.low { background: var(--info); color: white; }
+    
+    .vuln-url {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--gold);
+      background: rgba(212, 175, 55, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      word-break: break-all;
+    }
     
     .vuln-desc {
       color: var(--text-secondary);
-      line-height: 1.8;
-      margin-bottom: 1rem;
-    }
-    
-    .vuln-remediation {
-      background: rgba(212, 175, 55, 0.08);
-      border-left: 3px solid var(--gold);
-      padding: 1rem 1.25rem;
-      border-radius: 0 12px 12px 0;
-      color: var(--gold);
       font-size: 0.9rem;
-      font-weight: 500;
-    }
-    
-    /* Features Section */
-    .features-section {
-      padding: 10rem 0;
-      position: relative;
-    }
-    
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 2rem;
-      margin-top: 4rem;
-    }
-    
-    .feature-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      padding: 2.5rem;
-      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.5s;
-    }
-    
-    .feature-card:hover::before { transform: scaleX(1); }
-    
-    .feature-card:hover {
-      transform: translateY(-12px);
-      border-color: rgba(212, 175, 55, 0.3);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
-    }
-    
-    .feature-icon {
-      width: 72px;
-      height: 72px;
-      background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.05));
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.25rem;
-      margin-bottom: 1.75rem;
-      transition: all 0.4s;
-    }
-    
-    .feature-card:hover .feature-icon {
-      transform: scale(1.1) rotate(5deg);
-      background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.1));
-    }
-    
-    .feature-card h3 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-    }
-    
-    .feature-card p {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
+      margin-bottom: 1rem;
       line-height: 1.7;
     }
     
-    /* CTA Section */
-    .cta-section {
-      padding: 10rem 0;
-      text-align: center;
-      position: relative;
+    .vuln-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
     }
     
-    .cta-box {
+    .vuln-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--text-muted);
+    }
+    
+    .vuln-meta .cvss {
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    
+    /* Security Headers */
+    .headers-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .header-item {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 40px;
-      padding: 6rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 30px 120px rgba(0, 0, 0, 0.4);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
     }
     
-    .cta-box::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+    .header-item:hover { background: var(--bg-card-hover); }
+    
+    .header-item.missing {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.05);
     }
     
-    .cta-glow {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(212, 175, 55, 0.1), transparent 70%);
-      pointer-events: none;
+    .header-item.present {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.05);
     }
     
-    .cta-box h2 {
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 900;
-      margin-bottom: 1rem;
-      position: relative;
+    .header-info h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+      font-family: var(--font-mono);
     }
     
-    .cta-box p {
+    .header-info p {
+      font-size: 0.8rem;
       color: var(--text-secondary);
-      font-size: 1.3rem;
-      max-width: 650px;
-      margin: 0 auto 3rem;
-      position: relative;
     }
+    
+    .header-status {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    
+    .header-status.missing { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .header-status.present { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    
+    /* No Results */
+    .no-results {
+      text-align: center;
+      padding: 4rem;
+      color: var(--text-secondary);
+    }
+    
+    .no-results .icon { font-size: 4rem; margin-bottom: 1rem; }
+    .no-results h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--success); }
     
     /* Footer */
     footer {
-      padding: 4rem 0;
+      padding: 3rem 0;
       border-top: 1px solid rgba(255,255,255,0.05);
+      margin-top: 4rem;
     }
     
-    .footer-content {
+    footer .container {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
-    .footer-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    
-    .footer-logo {
-      font-size: 1.25rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #d4af37, #f4d03f);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .footer-copy {
+    .footer-text {
       color: var(--text-secondary);
       font-size: 0.9rem;
-    }
-    
-    .footer-links {
-      display: flex;
-      gap: 2.5rem;
-    }
-    
-    .footer-links a {
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.3s;
-    }
-    
-    .footer-links a:hover { color: var(--gold); }
-    
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Scroll Animations */
-    .scroll-reveal {
-      opacity: 0;
-      transform: translateY(50px);
-      transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    
-    .scroll-reveal.revealed {
-      opacity: 1;
-      transform: translateY(0);
     }
     
     /* Responsive */
     @media (max-width: 1200px) {
-      .features-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    
-    @media (max-width: 1024px) {
-      .features-grid { grid-template-columns: repeat(2, 1fr); }
-      .results-grid { grid-template-columns: 1fr; }
-      .scan-steps { grid-template-columns: repeat(3, 1fr); }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+      .scan-steps { grid-template-columns: repeat(4, 1fr); }
     }
     
     @media (max-width: 768px) {
-      .nav-links { display: none; }
-      .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-      .stat-value { font-size: 2.5rem; }
-      .features-grid { grid-template-columns: 1fr; }
-      .scanner-input-group { flex-direction: column; }
-      .scan-steps { grid-template-columns: repeat(2, 1fr); }
-      .footer-content { flex-direction: column; gap: 2rem; text-align: center; }
-      .hero h1 { font-size: 2.5rem; }
-      .cta-box { padding: 3rem 2rem; }
+      .scanner-hero .container { grid-template-columns: 1fr; }
+      .target-info-bar { grid-template-columns: 1fr 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .headers-grid { grid-template-columns: 1fr; }
+      .scan-steps { grid-template-columns: repeat(4, 1fr); }
+      .data-table { overflow-x: auto; }
+      .input-group { flex-direction: column; }
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-in {
+      animation: fadeIn 0.5s ease forwards;
     }
   </style>
 </head>
 <body>
-  <!-- Background Effects -->
   <div class="bg-gradient"></div>
-  <div class="grid-lines"></div>
-  <div class="particles" id="particles"></div>
+  <div class="grid-bg"></div>
   
   <!-- Navigation -->
-  <nav id="navbar">
+  <nav>
     <div class="container">
       <a href="#" class="logo">
         <div class="logo-icon">🔒</div>
         <span class="logo-text">Vallains</span>
       </a>
-      <ul class="nav-links">
-        <li><a href="#scanner">Scanner</a></li>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#results">Results</a></li>
-        <li><a href="#pricing">Pricing</a></li>
-      </ul>
-      <button class="btn-gold">Get Started</button>
+      <div class="nav-status">
+        <span class="status-dot"></span>
+        System Online
+      </div>
     </div>
   </nav>
   
-  <!-- Hero -->
-  <section class="hero">
+  <!-- Scanner Hero -->
+  <section class="scanner-hero">
     <div class="container">
       <div class="hero-content">
-        <div class="hero-badge">
-          <span class="dot"></span>
-          Advanced Security Scanner v2.0
-        </div>
-        <h1>
-          Find <span class="gradient-text">Vulnerabilities</span><br>
-          Before Hackers Do
-        </h1>
-        <p class="hero-description">
-          Comprehensive security scanning for your web applications. 
-          Detect SQL Injection, XSS, CSRF, and 50+ other vulnerability types 
-          with our advanced AI-powered scanner.
-        </p>
-        <div class="hero-actions">
-          <button class="btn-primary-hero" onclick="startScan()">
-            <span>🚀</span>
-            <span>Start Free Scan</span>
-          </button>
-          <button class="btn-secondary-hero">
-            <span>📺</span>
-            <span>Watch Demo</span>
-          </button>
-        </div>
-        
-        <div class="stats-bar">
-          <div class="stat-item">
-            <div class="stat-value">50K+</div>
-            <div class="stat-label">Vulnerabilities Found</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">10K+</div>
-            <div class="stat-label">Websites Scanned</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">99.9%</div>
-            <div class="stat-label">Accuracy Rate</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">&lt;3min</div>
-            <div class="stat-label">Average Scan Time</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  
-  <!-- Scanner Section -->
-  <section class="scanner-section" id="scanner">
-    <div class="container">
-      <div style="text-align: center;">
-        <div class="section-label">Instant Scanner</div>
-        <h2 class="section-title">Scan Your Website Now</h2>
-        <p class="section-desc">
-          Enter your URL and get comprehensive security analysis in minutes
-        </p>
+        <h1>Find <span class="gold">Vulnerabilities</span> Before Hackers Do</h1>
+        <p>Advanced security scanner with 25+ vulnerability checks. SQL Injection, XSS, LFI, RCE, SSRF, XXE, CORS, JWT, and more.</p>
       </div>
       
       <div class="scanner-box">
-        <div class="scanner-input-group">
-          <input type="text" class="scanner-input" id="targetUrl" placeholder="https://example.com" value="google.com">
-          <button class="btn-scan-hero" onclick="startScan()">
-            <span>🚀</span>
-            <span>Scan Now</span>
-          </button>
+        <h2>🔍 Start Security Scan</h2>
+        <div class="input-group">
+          <input type="text" class="input-field" id="targetUrl" placeholder="https://example.com" value="google.com">
+          <button class="btn-scan" onclick="startScan()">🚀 Scan Now</button>
         </div>
-        <div class="scanner-options">
-          <span class="option-tag">💉 SQL Injection</span>
-          <span class="option-tag">⚡ XSS</span>
-          <span class="option-tag">🔐 CSRF</span>
-          <span class="option-tag">🌐 SSRF</span>
-          <span class="option-tag">🔄 Open Redirect</span>
-          <span class="option-tag">📁 Path Traversal</span>
-          <span class="option-tag">💻 Command Injection</span>
-          <span class="option-tag">+45 more</span>
+        <div class="scan-options">
+          <span class="scan-option">SQLi</span>
+          <span class="scan-option">XSS</span>
+          <span class="scan-option">LFI</span>
+          <span class="scan-option">RCE</span>
+          <span class="scan-option">SSRF</span>
+          <span class="scan-option">XXE</span>
+          <span class="scan-option">IDOR</span>
+          <span class="scan-option">CORS</span>
+          <span class="scan-option">JWT</span>
+          <span class="scan-option">+20 more</span>
         </div>
         
         <!-- Scan Progress -->
         <div class="scan-progress" id="scanProgress">
-          <div class="progress-header">
-            <div class="progress-title">Scanning in progress...</div>
-            <div class="progress-percent" id="progressPercent">0%</div>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-bar-container">
+            <div class="progress-header">
+              <span>Scanning in progress...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
           </div>
           <div class="scan-steps">
-            <div class="scan-step" id="step-dns">
-              <span class="step-icon">🌐</span>
-              <div class="step-name">DNS</div>
-              <div class="step-status">Pending</div>
-            </div>
-            <div class="scan-step" id="step-ssl">
-              <span class="step-icon">🔐</span>
-              <div class="step-name">SSL</div>
+            <div class="scan-step" id="step-recon">
+              <div class="step-icon">🔎</div>
+              <div class="step-name">Recon</div>
               <div class="step-status">Pending</div>
             </div>
             <div class="scan-step" id="step-ports">
-              <span class="step-icon">🚪</span>
+              <div class="step-icon">🚪</div>
               <div class="step-name">Ports</div>
               <div class="step-status">Pending</div>
             </div>
+            <div class="scan-step" id="step-dirs">
+              <div class="step-icon">📁</div>
+              <div class="step-name">Dirs</div>
+              <div class="step-status">Pending</div>
+            </div>
             <div class="scan-step" id="step-sqli">
-              <span class="step-icon">💉</span>
+              <div class="step-icon">💉</div>
               <div class="step-name">SQLi</div>
               <div class="step-status">Pending</div>
             </div>
             <div class="scan-step" id="step-xss">
-              <span class="step-icon">⚡</span>
+              <div class="step-icon">⚡</div>
               <div class="step-name">XSS</div>
               <div class="step-status">Pending</div>
             </div>
+            <div class="scan-step" id="step-lfi">
+              <div class="step-icon">📄</div>
+              <div class="step-name">LFI</div>
+              <div class="step-status">Pending</div>
+            </div>
+            <div class="scan-step" id="step-ssrf">
+              <div class="step-icon">🌐</div>
+              <div class="step-name">SSRF</div>
+              <div class="step-status">Pending</div>
+            </div>
             <div class="scan-step" id="step-cors">
-              <span class="step-icon">🔄</span>
+              <div class="step-icon">🔐</div>
               <div class="step-name">CORS</div>
               <div class="step-status">Pending</div>
             </div>
@@ -1248,154 +813,302 @@
   </section>
   
   <!-- Results Section -->
-  <section class="results-section" id="results">
+  <section class="results-section" id="resultsSection">
     <div class="container">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <div class="section-label">Scan Results</div>
-        <h2 class="section-title">Vulnerabilities Found</h2>
+      <!-- Target Info Bar -->
+      <div class="target-info-bar">
+        <div class="target-main">
+          <h2>🎯 <span id="resultTarget">google.com</span></h2>
+          <div class="url" id="resultUrl">https://google.com</div>
+        </div>
+        <div class="target-stat grade-b">
+          <div class="value" id="resultGrade">B</div>
+          <div class="label">Security Grade</div>
+        </div>
+        <div class="target-stat">
+          <div class="value" id="resultVulns" style="color: var(--warning);">3</div>
+          <div class="label">Vulnerabilities</div>
+        </div>
+        <div class="target-stat">
+          <div class="value" id="resultPorts" style="color: var(--success);">5</div>
+          <div class="label">Open Ports</div>
+        </div>
       </div>
       
-      <div class="results-grid">
-        <div class="grade-card grade-b">
-          <div class="grade-circle">B</div>
-          <div class="grade-title">Good Security</div>
-          <div class="grade-desc">Your website has minor issues that should be addressed</div>
+      <!-- Tabs -->
+      <div class="results-tabs">
+        <button class="tab-btn active" onclick="showTab('overview')">📊 Overview</button>
+        <button class="tab-btn" onclick="showTab('recon')">🔎 Recon</button>
+        <button class="tab-btn" onclick="showTab('ports')">🚪 Ports & Dirs</button>
+        <button class="tab-btn" onclick="showTab('vulns')">⚠️ Vulnerabilities <span class="tab-badge">3</span></button>
+        <button class="tab-btn" onclick="showTab('security')">🔐 Security Headers</button>
+        <button class="tab-btn" onclick="showTab('ssl')">🔒 SSL/TLS</button>
+      </div>
+      
+      <!-- Overview Tab -->
+      <div class="tab-content active" id="tab-overview">
+        <div class="info-grid">
+          <div class="info-card">
+            <h3><span class="icon">🌐</span> Target Information</h3>
+            <div class="info-row"><span class="label">IP Address</span><span class="value" id="infoIp">142.250.185.78</span></div>
+            <div class="info-row"><span class="label">Hostname</span><span class="value" id="infoHostname">google.com</span></div>
+            <div class="info-row"><span class="label">Country</span><span class="value" id="infoCountry">United States</span></div>
+            <div class="info-row"><span class="label">City</span><span class="value" id="infoCity">Mountain View</span></div>
+            <div class="info-row"><span class="label">Organization</span><span class="value" id="infoOrg">Google LLC</span></div>
+            <div class="info-row"><span class="label">ASN</span><span class="value" id="infoAsn">AS15169</span></div>
+          </div>
+          
+          <div class="info-card">
+            <h3><span class="icon">📋</span> WHOIS Information</h3>
+            <div class="info-row"><span class="label">Registered</span><span class="value" id="whoisReg">1997-09-15</span></div>
+            <div class="info-row"><span class="label">Expires</span><span class="value" id="whoisExp">2028-09-14</span></div>
+            <div class="info-row"><span class="label">Updated</span><span class="value" id="whoisUpd">2023-08-14</span></div>
+            <div class="info-row"><span class="label">Registrar</span><span class="value" id="whoisReg2">MarkMonitor Inc.</span></div>
+            <div class="info-row"><span class="label">Nameservers</span><span class="value info">ns1.google.com</span></div>
+          </div>
+          
+          <div class="info-card">
+            <h3><span class="icon">🛡️</span> Security Status</h3>
+            <div class="info-row"><span class="label">WAF</span><span class="value success" id="wafStatus">Google Cloud Armor</span></div>
+            <div class="info-row"><span class="label">SSL Grade</span><span class="value success" id="sslGrade">A+</span></div>
+            <div class="info-row"><span class="label">Headers Score</span><span class="value warning" id="headersScore">7/9</span></div>
+            <div class="info-row"><span class="label">Technologies</span><span class="value info" id="techCount">12</span></div>
+            <div class="info-row"><span class="label">Risk Level</span><span class="value warning">Medium</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recon Tab -->
+      <div class="tab-content" id="tab-recon">
+        <div class="info-grid">
+          <div class="info-card">
+            <h3><span class="icon">🌐</span> DNS Information</h3>
+            <div class="info-row"><span class="label">A Records</span><span class="value" id="dnsA">142.250.185.78, 142.250.185.46</span></div>
+            <div class="info-row"><span class="label">AAAA Records</span><span class="value" id="dnsAAAA">2607:f8b0:4004:800::200e</span></div>
+            <div class="info-row"><span class="label">MX Records</span><span class="value" id="dnsMX">smtp.google.com</span></div>
+            <div class="info-row"><span class="label">NS Records</span><span class="value" id="dnsNS">ns1.google.com, ns2.google.com</span></div>
+            <div class="info-row"><span class="label">TXT Records</span><span class="value" id="dnsTXT">v=spf1 ...</span></div>
+            <div class="info-row"><span class="label">CNAME</span><span class="value info">-</span></div>
+          </div>
+          
+          <div class="info-card">
+            <h3><span class="icon">🖥️</span> Geolocation</h3>
+            <div class="info-row"><span class="label">IP</span><span class="value" id="geoIp">142.250.185.78</span></div>
+            <div class="info-row"><span class="label">Country</span><span class="value" id="geoCountry">United States</span></div>
+            <div class="info-row"><span class="label">Region</span><span class="value" id="geoRegion">California</span></div>
+            <div class="info-row"><span class="label">City</span><span class="value" id="geoCity">Mountain View</span></div>
+            <div class="info-row"><span class="label">Timezone</span><span class="value" id="geoTz">America/Los_Angeles</span></div>
+            <div class="info-row"><span class="label">ISP</span><span class="value" id="geoIsp">Google LLC</span></div>
+          </div>
+          
+          <div class="info-card">
+            <h3><span class="icon">📧</span> Data Harvested</h3>
+            <div class="info-row"><span class="label">Emails Found</span><span class="value info">0</span></div>
+            <div class="info-row"><span class="label">API Keys</span><span class="value success">0</span></div>
+            <div class="info-row"><span class="label">Subdomains</span><span class="value info">8</span></div>
+            <div class="info-row"><span class="label">HTTP Methods</span><span class="value" id="httpMethods">GET, HEAD, POST, OPTIONS</span></div>
+            <div class="info-row"><span class="label">Technologies</span><span class="value info" id="techList">Google Cloud, GCP, Google Analytics</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Ports & Dirs Tab -->
+      <div class="tab-content" id="tab-ports">
+        <div class="data-table">
+          <div class="data-table-header">
+            <h3>🚪 Open Ports</h3>
+            <span class="count">5 Open</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Port</th>
+                <th>Service</th>
+                <th>State</th>
+                <th>Version</th>
+                <th>Risk</th>
+              </tr>
+            </thead>
+            <tbody id="portsTable">
+              <tr><td>80</td><td>HTTP</td><td><span class="status-badge status-open">OPEN</span></td><td>nginx</td><td><span class="status-badge status-info">Low</span></td></tr>
+              <tr><td>443</td><td>HTTPS</td><td><span class="status-badge status-open">OPEN</span></td><td>nginx/1.25.3</td><td><span class="status-badge status-info">Low</span></td></tr>
+              <tr><td>22</td><td>SSH</td><td><span class="status-badge status-open">OPEN</span></td><td>OpenSSH 8.4</td><td><span class="status-badge status-warning">Medium</span></td></tr>
+            </tbody>
+          </table>
         </div>
         
-        <div class="vulnerabilities-list">
-          <div class="vuln-card vuln-high">
-            <div class="vuln-header">
-              <div class="vuln-name">💉 SQL Injection</div>
-              <span class="vuln-badge high">High</span>
-            </div>
-            <p class="vuln-desc">
-              Potential SQL injection vulnerability detected in parameter 'id'. 
-              Attackers could manipulate database queries to access sensitive data.
-            </p>
-            <div class="vuln-remediation">
-              → Use parameterized queries (Prepared Statements) or ORM frameworks
-            </div>
+        <div class="data-table">
+          <div class="data-table-header">
+            <h3>📁 Directories & Files</h3>
+            <span class="count">12 Found</span>
           </div>
-          
-          <div class="vuln-card vuln-medium">
-            <div class="vuln-header">
-              <div class="vuln-name">⚡ Missing Content Security Policy</div>
-              <span class="vuln-badge medium">Medium</span>
-            </div>
-            <p class="vuln-desc">
-              Content-Security-Policy header is missing. This could allow 
-              Cross-Site Scripting (XSS) attacks.
-            </p>
-            <div class="vuln-remediation">
-              → Implement strict CSP headers to prevent XSS attacks
-            </div>
-          </div>
-          
-          <div class="vuln-card vuln-low">
-            <div class="vuln-header">
-              <div class="vuln-name">🔶 Open Redirect</div>
-              <span class="vuln-badge low">Low</span>
-            </div>
-            <p class="vuln-desc">
-              Open redirect vulnerability detected in the logout flow. 
-              Could be exploited for phishing attacks.
-            </p>
-            <div class="vuln-remediation">
-              → Validate and whitelist redirect URLs before processing
-            </div>
-          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Path</th>
+                <th>Status</th>
+                <th>Size</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody id="dirsTable">
+              <tr><td>/robots.txt</td><td><span class="status-badge status-open">200</span></td><td>5.2 KB</td><td>Text</td></tr>
+              <tr><td>/sitemap.xml</td><td><span class="status-badge status-open">200</span></td><td>12 KB</td><td>XML</td></tr>
+              <tr><td>/.env</td><td><span class="status-badge status-critical">SENSITIVE</span></td><td>-</td><td>Config</td></tr>
+              <tr><td>/admin</td><td><span class="status-badge status-warning">401</span></td><td>-</td><td>Auth</td></tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-    </div>
-  </section>
-  
-  <!-- Features Section -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div style="text-align: center;">
-        <div class="section-label">Capabilities</div>
-        <h2 class="section-title">What We Scan</h2>
-        <p class="section-desc">
-          Comprehensive vulnerability detection across all attack vectors
-        </p>
       </div>
       
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">💉</div>
-          <h3>SQL Injection</h3>
-          <p>Detect SQL injection vulnerabilities that could allow attackers to access your database.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <h3>Cross-Site Scripting</h3>
-          <p>Find XSS vulnerabilities that could allow malicious script injection.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <h3>CSRF Protection</h3>
-          <p>Check if your application has proper CSRF token validation.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🌐</div>
-          <h3>SSRF</h3>
-          <p>Detect Server-Side Request Forgery vulnerabilities for internal access.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔄</div>
-          <h3>Open Redirect</h3>
-          <p>Find open redirect vulnerabilities that could be used in phishing attacks.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📁</div>
-          <h3>Path Traversal</h3>
-          <p>Detect directory traversal vulnerabilities for file access.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">💻</div>
-          <h3>Command Injection</h3>
-          <p>Find command injection vulnerabilities that could execute OS commands.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔑</div>
-          <h3>XXE</h3>
-          <p>Detect XML External Entity vulnerabilities in XML parsers.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔑</div>
-          <h3>CORS Misconfiguration</h3>
-          <p>Find CORS misconfigurations that could expose sensitive data.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔑</div>
-          <h3>Security Headers</h3>
-          <p>Check for missing security headers like CSP, HSTS, X-Frame-Options.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔑</div>
-          <h3>Authentication</h3>
-          <p>Test your authentication mechanisms for weaknesses and bypasses.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🔑</div>
-          <h3>+40 More</h3>
-          <p>And many more vulnerability types including subdomain takeover, sensitive data exposure, and more.</p>
+      <!-- Vulnerabilities Tab -->
+      <div class="tab-content" id="tab-vulns">
+        <div class="vuln-grid" id="vulnsList">
+          <div class="vuln-card high">
+            <div class="vuln-header">
+              <div class="vuln-title">
+                <span>💉</span>
+                <h4>SQL Injection (Error-Based)</h4>
+              </div>
+              <span class="vuln-severity high">High</span>
+            </div>
+            <div class="vuln-url">https://google.com/search?q=1' OR 1=1--</div>
+            <p class="vuln-desc">Parameter 'q' appears to be vulnerable to SQL injection. The application returns database error messages in the response, exposing internal database structure.</p>
+            <div class="vuln-meta">
+              <span>📌 Parameter: q</span>
+              <span>🎯 CVSS: <span class="cvss">8.2</span></span>
+              <span>🔧 Remediation: Use parameterized queries</span>
+            </div>
+          </div>
+          
+          <div class="vuln-card medium">
+            <div class="vuln-header">
+              <div class="vuln-title">
+                <span>⚡</span>
+                <h4>XSS (Reflected)</h4>
+              </div>
+              <span class="vuln-severity medium">Medium</span>
+            </div>
+            <div class="vuln-url">https://google.com/search?q=<script>alert(1)</script></div>
+            <p class="vuln-desc">Parameter 'q' reflects user input without proper encoding, allowing execution of arbitrary JavaScript code in the victim's browser.</p>
+            <div class="vuln-meta">
+              <span>📌 Parameter: q</span>
+              <span>🎯 CVSS: <span class="cvss">6.1</span></span>
+              <span>🔧 Remediation: HTML encode output, implement CSP</span>
+            </div>
+          </div>
+          
+          <div class="vuln-card low">
+            <div class="vuln-header">
+              <div class="vuln-title">
+                <span>🔶</span>
+                <h4>Missing Security Headers</h4>
+              </div>
+              <span class="vuln-severity low">Low</span>
+            </div>
+            <div class="vuln-url">https://google.com/</div>
+            <p class="vuln-desc">Several security headers are missing: X-Frame-Options, Content-Security-Policy, X-Content-Type-Options. These headers help protect against clickjacking and XSS attacks.</p>
+            <div class="vuln-meta">
+              <span>📌 Headers: X-Frame-Options, CSP</span>
+              <span>🎯 CVSS: <span class="cvss">4.8</span></span>
+              <span>🔧 Remediation: Add security headers</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-  
-  <!-- CTA Section -->
-  <section class="cta-section">
-    <div class="container">
-      <div class="cta-box">
-        <div class="cta-glow"></div>
-        <h2>Ready to Secure Your Website?</h2>
-        <p>Start scanning now and get detailed reports on vulnerabilities in your web applications.</p>
-        <button class="btn-primary-hero" onclick="startScan()">
-          <span>🚀</span>
-          <span>Scan Now - It's Free</span>
-        </button>
+      
+      <!-- Security Headers Tab -->
+      <div class="tab-content" id="tab-security">
+        <div class="headers-grid" id="headersList">
+          <div class="header-item present">
+            <div class="header-info">
+              <h4>Strict-Transport-Security</h4>
+              <p>Enforces HTTPS connections</p>
+            </div>
+            <span class="header-status present">✓ Present</span>
+          </div>
+          <div class="header-item present">
+            <div class="header-info">
+              <h4>X-Content-Type-Options</h4>
+              <p>Prevents MIME sniffing</p>
+            </div>
+            <span class="header-status present">✓ Present</span>
+          </div>
+          <div class="header-item present">
+            <div class="header-info">
+              <h4>Referrer-Policy</h4>
+              <p>Controls referrer information</p>
+            </div>
+            <span class="header-status present">✓ Present</span>
+          </div>
+          <div class="header-item missing">
+            <div class="header-info">
+              <h4>X-Frame-Options</h4>
+              <p>Prevents clickjacking attacks</p>
+            </div>
+            <span class="header-status missing">✗ Missing</span>
+          </div>
+          <div class="header-item missing">
+            <div class="header-info">
+              <h4>Content-Security-Policy</h4>
+              <p>Prevents XSS and data injection</p>
+            </div>
+            <span class="header-status missing">✗ Missing</span>
+          </div>
+          <div class="header-item present">
+            <div class="header-info">
+              <h4>X-XSS-Protection</h4>
+              <p>Legacy XSS filter (Chrome removed)</p>
+            </div>
+            <span class="header-status present">✓ Present</span>
+          </div>
+          <div class="header-item missing">
+            <div class="header-info">
+              <h4>Permissions-Policy</h4>
+              <p>Controls browser features</p>
+            </div>
+            <span class="header-status missing">✗ Missing</span>
+          </div>
+          <div class="header-item missing">
+            <div class="header-info">
+              <h4>Cross-Origin-Embedder-Policy</h4>
+              <p>Prevents cross-origin data leaks</p>
+            </div>
+            <span class="header-status missing">✗ Missing</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SSL Tab -->
+      <div class="tab-content" id="tab-ssl">
+        <div class="info-grid">
+          <div class="info-card">
+            <h3><span class="icon">🔒</span> SSL Certificate</h3>
+            <div class="info-row"><span class="label">Issuer</span><span class="value success">Google Trust Services</span></div>
+            <div class="info-row"><span class="label">Valid From</span><span class="value">2024-01-01</span></div>
+            <div class="info-row"><span class="label">Valid To</span><span class="value success">2024-07-01</span></div>
+            <div class="info-row"><span class="label">Serial</span><span class="value">4C:E9:84:7F:9C:...</span></div>
+            <div class="info-row"><span class="label">Signature Algo</span><span class="value">RSA-SHA256</span></div>
+          </div>
+          
+          <div class="info-card">
+            <h3><span class="icon">⚙️</span> TLS Configuration</h3>
+            <div class="info-row"><span class="label">Protocol Version</span><span class="value success">TLS 1.3</span></div>
+            <div class="info-row"><span class="label">Cipher Suite</span><span class="value">TLS_AES_256_GCM_SHA384</span></div>
+            <div class="info-row"><span class="label">Certificate Type</span><span class="value">EV (Extended Validation)</span></div>
+            <div class="info-row"><span class="label">Public Key</span><span class="value">RSA 2048-bit</span></div>
+            <div class="info-row"><span class="label">SSL Grade</span><span class="value success">A+</span></div>
+          </div>
+          
+          <div class="info-card">
+            <h3><span class="icon">✅</span> Security Checks</h3>
+            <div class="info-row"><span class="label">Certificate Valid</span><span class="value success">✓ Yes</span></div>
+            <div class="info-row"><span class="label">Hostname Match</span><span class="value success">✓ Yes</span></div>
+            <div class="info-row"><span class="label">Not Expired</span><span class="value success">✓ Yes</span></div>
+            <div class="info-row"><span class="label">Self-Signed</span><span class="value success">✗ No</span></div>
+            <div class="info-row"><span class="label">Weak Cipher</span><span class="value success">✗ No</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1403,73 +1116,21 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <div class="footer-content">
-        <div class="footer-left">
-          <span class="footer-logo">Vallains</span>
-          <span class="footer-copy">© 2024 Advanced Security Scanner</span>
-        </div>
-        <div class="footer-links">
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">Contact</a>
-          <a href="#">Documentation</a>
-        </div>
-      </div>
+      <span class="footer-text">© 2024 Vallains Security Scanner - Advanced Penetration Testing Tool</span>
+      <span class="footer-text">v2.0 | 25+ Vulnerability Modules</span>
     </div>
   </footer>
   
   <script>
-    // Create particles
-    function createParticles() {
-      const container = document.getElementById('particles');
-      for (let i = 0; i < 30; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 15 + 's';
-        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-        container.appendChild(particle);
-      }
-    }
-    createParticles();
-    
-    // Navbar scroll effect
-    window.addEventListener('scroll', () => {
-      const nav = document.getElementById('navbar');
-      if (window.scrollY > 50) {
-        nav.classList.add('scrolled');
-      } else {
-        nav.classList.remove('scrolled');
-      }
-    });
-    
-    // Scroll reveal
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('revealed');
-        }
-      });
-    }, observerOptions);
-    
-    document.querySelectorAll('.feature-card, .stat-item').forEach(el => {
-      el.classList.add('scroll-reveal');
-      observer.observe(el);
-    });
-    
-    // Scanner functionality
-    const steps = [
-      { id: 'dns', name: 'DNS', progress: 15 },
-      { id: 'ssl', name: 'SSL', progress: 30 },
-      { id: 'ports', name: 'Ports', progress: 45 },
-      { id: 'sqli', name: 'SQLi', progress: 60 },
-      { id: 'xss', name: 'XSS', progress: 75 },
-      { id: 'cors', name: 'CORS', progress: 90 }
+    const scanSteps = [
+      { id: 'recon', name: 'Recon', progress: 12 },
+      { id: 'ports', name: 'Ports', progress: 25 },
+      { id: 'dirs', name: 'Dirs', progress: 38 },
+      { id: 'sqli', name: 'SQLi', progress: 50 },
+      { id: 'xss', name: 'XSS', progress: 63 },
+      { id: 'lfi', name: 'LFI', progress: 75 },
+      { id: 'ssrf', name: 'SSRF', progress: 88 },
+      { id: 'cors', name: 'CORS', progress: 100 }
     ];
     
     let currentStep = 0;
@@ -1481,16 +1142,13 @@
         return;
       }
       
-      // Hide results, show progress
-      document.querySelector('.results-section').classList.remove('active');
+      // Show progress
       document.getElementById('scanProgress').classList.add('active');
-      
-      // Scroll to scanner
-      document.getElementById('scanner').scrollIntoView({ behavior: 'smooth' });
+      document.querySelector('.results-section').classList.remove('active');
       
       // Reset steps
-      document.querySelectorAll('.scan-step').forEach(step => {
-        step.classList.remove('active', 'completed');
+      document.querySelectorAll('.scan-step').forEach(el => {
+        el.classList.remove('active', 'completed');
       });
       
       currentStep = 0;
@@ -1499,13 +1157,13 @@
     
     function simulateScan() {
       const interval = setInterval(() => {
-        if (currentStep >= steps.length) {
+        if (currentStep >= scanSteps.length) {
           clearInterval(interval);
           completeScan();
           return;
         }
         
-        const step = steps[currentStep];
+        const step = scanSteps[currentStep];
         
         // Update progress
         document.getElementById('progressPercent').textContent = step.progress + '%';
@@ -1526,31 +1184,41 @@
         });
         
         currentStep++;
-      }, 800);
+      }, 600);
     }
     
     function completeScan() {
       document.getElementById('progressPercent').textContent = '100%';
       document.getElementById('progressFill').style.width = '100%';
       
-      // Mark all as completed
+      // Mark all completed
       document.querySelectorAll('.scan-step').forEach(el => {
         el.classList.remove('active');
         el.classList.add('completed');
         el.querySelector('.step-status').textContent = 'Done';
       });
       
-      // Show results after delay
+      // Show results
       setTimeout(() => {
         document.getElementById('scanProgress').classList.remove('active');
         document.querySelector('.results-section').classList.add('active');
-        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-      }, 800);
+        document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+      }, 500);
     }
     
-    // Auto-start demo on load
+    function showTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+    }
+    
+    // Auto-start on load
     window.addEventListener('load', () => {
-      setTimeout(startScan, 2500);
+      setTimeout(startScan, 1500);
     });
   </script>
 </body>
